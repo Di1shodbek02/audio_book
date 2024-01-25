@@ -22,9 +22,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'drf_yasg',
+    'drf_yasg', # noqa
 
-    'auth',
+    'accounts',
     'main',
     'rest_framework',
     'rest_framework_simplejwt',
@@ -91,16 +91,16 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        'NAME': 'django.contrib.accounts.password_validation.UserAttributeSimilarityValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'NAME': 'django.contrib.accounts.password_validation.MinimumLengthValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        'NAME': 'django.contrib.accounts.password_validation.CommonPasswordValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        'NAME': 'django.contrib.accounts.password_validation.NumericPasswordValidator',
     },
 ]
 
@@ -155,8 +155,8 @@ JAZZMIN_SETTINGS = {
     "user_avatar": None,
 
     "topmenu_links": [
-        {"name": "GreenLife", "url": "home", "permissions": ["auth.view_user"]},
-        {"model": "auth.User"},
+        {"name": "GreenLife", "url": "home", "permissions": ["accounts.view_user"]},
+        {"model": "accounts.User"},
     ],
 
     "show_sidebar": True,
@@ -164,10 +164,10 @@ JAZZMIN_SETTINGS = {
     "navigation_expanded": True,
 
     "icons": {
-        "auth": "fas fa-users-cog",
-        "auth.user": "fas fa-user",
+        "accounts": "fas fa-users-cog",
+        "accounts.user": "fas fa-user",
         "users.User": "fas fa-user",
-        "auth.Group": "fas fa-users",
+        "accounts.Group": "fas fa-users",
         "admin.LogEntry": "fas fa-file",
     },
 
@@ -183,8 +183,8 @@ JAZZMIN_SETTINGS = {
     "changeform_format": "horizontal_tabs",
 
     "changeform_format_overrides": {
-        "auth.user": "collapsible",
-        "auth.group": "vertical_tabs",
+        "accounts.user": "collapsible",
+        "accounts.group": "vertical_tabs",
     },
 }
 
@@ -250,3 +250,4 @@ EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'ahmatovdilshodbek@gmail.com'
 EMAIL_HOST_PASSWORD = 'zljvuwhavuvhqoir'
+
