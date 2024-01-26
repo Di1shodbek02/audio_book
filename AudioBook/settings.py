@@ -62,7 +62,21 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'AudioBook.wsgi.application'
 
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6380/1',  # Adjust accordingly
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
+
+
 REST_FRAMEWORK = {
+    'DEFAULT_CACHE_BACKEND': 'django.core.cache.backends.django_redis.RedisCache',
+    'DEFAULT_CACHE_ALIAS': 'default',
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
