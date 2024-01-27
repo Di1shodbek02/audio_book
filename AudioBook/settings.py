@@ -13,6 +13,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
+AUTH_USER_MODEL = 'accounts.User'
 
 INSTALLED_APPS = [
     'jazzmin',  # noqa
@@ -22,7 +23,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'drf_yasg', # noqa
+    'drf_yasg',  # noqa
 
     'accounts',
     'main',
@@ -62,17 +63,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'AudioBook.wsgi.application'
 
-
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://127.0.0.1:6380/1',  # Adjust accordingly
+        'LOCATION': 'redis://127.0.0.1:6379/1',  # Adjust accordingly
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         }
     }
 }
-
 
 REST_FRAMEWORK = {
     'DEFAULT_CACHE_BACKEND': 'django.core.cache.backends.django_redis.RedisCache',
@@ -245,15 +244,9 @@ USE_I18N = True
 
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.0/howto/static-files/
-
 STATIC_URL = 'static/'
 MEDIA_URL = 'media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # settings.py
@@ -264,4 +257,3 @@ EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'ahmatovdilshodbek@gmail.com'
 EMAIL_HOST_PASSWORD = 'zljvuwhavuvhqoir'
-

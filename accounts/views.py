@@ -1,4 +1,4 @@
-<<<<<<< Updated upstream
+
 from rest_framework import generics, status
 from rest_framework.response import Response
 from .serializers import RegisterSerializer, ConfirmCodeSerializer
@@ -46,5 +46,4 @@ class ConfirmCodeApiView(GenericAPIView):
         cached_confirm_code = cache.get(email)
         if confirm_code == cached_confirm_code:
             return Response({'message': True})
-=======
->>>>>>> Stashed changes
+
