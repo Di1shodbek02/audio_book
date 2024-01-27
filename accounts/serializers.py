@@ -3,11 +3,6 @@ from rest_framework import serializers
 from .models import User
 
 
-# class RegisterSerializer(serializers.Serializer):
-#     email = serializers.EmailField()
-#     password = serializers.CharField(write_only=True)
-#     confirmation_code = serializers.CharField(read_only=True)
-
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
