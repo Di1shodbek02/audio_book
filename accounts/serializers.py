@@ -18,3 +18,13 @@ class UpdateDestroyAccount(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['avatar', 'first_name', 'last_name', 'email', 'phone_number', 'password']
+
+
+class ForgetPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    new_password = serializers.CharField()
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    confirm_code = serializers.IntegerField()
