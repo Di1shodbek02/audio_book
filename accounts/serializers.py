@@ -1,5 +1,4 @@
 from rest_framework import serializers
-
 from .models import User
 
 
@@ -20,11 +19,10 @@ class UpdateDestroyAccount(serializers.ModelSerializer):
         fields = ['avatar', 'first_name', 'last_name', 'email', 'phone_number', 'password']
 
 
-class ForgetPasswordSerializer(serializers.Serializer):
+class PasswordResetRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()
+
+
+class PasswordResetSerializer(serializers.Serializer):
+    token = serializers.CharField()
     new_password = serializers.CharField()
-
-
-class ResetPasswordSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-    confirm_code = serializers.IntegerField()

@@ -1,0 +1,46 @@
+class ForgetPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    new_password = serializers.CharField()
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    confirm_code = serializers.IntegerField()
+
+
+
+class ForgetPasswordApiView(GenericAPIView):
+    serializer_class = ForgetPasswordSerializer
+
+    def generate_confirmation_code(self):
+        return random.randrange(10000, 99999)
+
+    def post(self, request):
+        email = request.data.get('email')
+        new_password = request.data.get('new_password')
+
+        confirmation_code = self.generate_confirmation_code()
+        data = {'confirmation_code': confirmation_code,
+                'new_password': new_password
+                }
+        cache.set(email, data, timeout=300)
+        send_email.delay(email, confirmation_code)
+
+        return Response({'confirmation_code': confirmation_code}, status=status.HTTP_200_OK)
+
+
+class ResetPasswordApiView(GenericAPIView):
+    serializer_class = ResetPasswordSerializer
+
+    def post(self, request):
+        email = request.data.get('email')
+        confirm_code = request.data.get('confirm_code')
+
+        cached_data = cache.get(email)
+        if cached_data.get('confirmation_code') == confirm_code:
+            user = User.objects.get(email=email)
+            password = pwd_context.hash(cached_data.get('new_password'))
+            user.update(password=password)
+            user.save()
+            return Response({'success': True}, status=status.HTTP_200_OK)
+        return Response({'message': 'Confirm code is not valid!'})
