@@ -1,31 +1,30 @@
 import random
-
-from click._compat import _force_correct_text_reader
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.core.cache import cache
-from django.core.mail import send_mail
-from django.utils.encoding import force_bytes
-
+from django.utils.encoding import force_str, force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from passlib.context import CryptContext
 from rest_framework import generics, status
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, CreateAPIView, ListAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from django.db.models import Q
+from rest_framework.views import APIView
 
-from .serializers import PasswordResetRequestSerializer, PasswordResetSerializer
-from .serializers import RegisterSerializer, ConfirmCodeSerializer
-from .tasks import send_email
+from .permissions import IsAdminPermission
+from .serializers import PasswordResetSerializer, PasswordResetRequestSerializer, UpdateDestroyAccountSerializer, \
+    RegisterSerializer, ConfirmCodeSerializer, UserInfoSerializer
 
-
+from .tasks import send_email, send_forget_password
 
 User = get_user_model()
 
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
 
-class RegistrationAPIView(generics.CreateAPIView):
+class RegistrationAPIView(CreateAPIView):
     serializer_class = RegisterSerializer
 
     def generate_confirmation_code(self):
@@ -81,7 +80,7 @@ class ConfirmCodeApiView(GenericAPIView):
             return Response({'message': 'The entered code is not valid!'}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class PasswordResetRequestView(generics.GenericAPIView):
+class PasswordResetRequestView(GenericAPIView):
     serializer_class = PasswordResetRequestSerializer
 
     def post(self, request):
@@ -95,22 +94,17 @@ class PasswordResetRequestView(generics.GenericAPIView):
 
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             token = default_token_generator.make_token(user)
-            reset_link = f"http://127.0.0.1:8000/reset-password/{uid}/{token}/"
-            send_mail(
-                'Password Reset',
-                f'Click the following link to reset your password: {reset_link}',
-                'from@example.com',
-                [email],
-                fail_silently=False,
-            )
+            reset_link = f"http://10.10.3.86:8000/reset-password/{uid}/{token}/"
+            send_forget_password.delay(email, reset_link)
             return Response({'success': 'Password reset link sent'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class PasswordResetView(generics.GenericAPIView):
+class PasswordResetView(GenericAPIView):
     serializer_class = PasswordResetSerializer
 
     def post(self, request):
+
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             token = serializer.validated_data['token']
@@ -118,7 +112,7 @@ class PasswordResetView(generics.GenericAPIView):
 
             try:
                 uid, token = serializer.data['token'].split('-')
-                uid = _force_correct_text_reader(urlsafe_base64_decode(uid))
+                uid = force_str(urlsafe_base64_decode(uid))
                 user = User.objects.get(pk=uid)
             except (TypeError, ValueError, OverflowError, User.DoesNotExist):
                 user = None
@@ -130,3 +124,36 @@ class PasswordResetView(generics.GenericAPIView):
             else:
                 return Response({'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserUpdateGenericAPIView(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = UpdateDestroyAccountSerializer
+
+    def patch(self, request, pk):
+        try:
+            user = User.objects.get(Q(pk=pk, user=request.user))
+            serializer = self.get_serializer(user, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({"status": False, "message": str(e)})
+
+
+class UserDeleteGenericAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def delete(self, request, pk):
+        try:
+            user = User.objects.get(Q(pk=pk) & Q(user=request.user))
+            user.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            return Response({"status": False, "message": str(e)})
+
+
+class UserLict(ListAPIView):
+    permission_classes = (IsAdminPermission,)
+    queryset = User.objects.all()
+    serializer_class = UserInfoSerializer

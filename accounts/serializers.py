@@ -13,10 +13,10 @@ class ConfirmCodeSerializer(serializers.Serializer):
     confirm_code = serializers.IntegerField()
 
 
-class UpdateDestroyAccount(serializers.ModelSerializer):
+class UpdateDestroyAccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['avatar', 'first_name', 'last_name', 'email', 'phone_number', 'password']
+        fields = ['avatar', 'first_name', 'last_name', 'phone_number', 'password']
 
 
 class PasswordResetRequestSerializer(serializers.Serializer):
@@ -26,3 +26,9 @@ class PasswordResetRequestSerializer(serializers.Serializer):
 class PasswordResetSerializer(serializers.Serializer):
     token = serializers.CharField()
     new_password = serializers.CharField()
+
+
+class UserInfoSerializer(serializers.Serializer):
+    class Meta:
+        model = User
+        fields = '__all__'
