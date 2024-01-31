@@ -1,8 +1,10 @@
 from rest_framework import serializers
+from rest_framework.serializers import ModelSerializer
+
 from .models import User
 
 
-class RegisterSerializer(serializers.ModelSerializer):
+class RegisterSerializer(ModelSerializer):
     class Meta:
         model = User
         fields = ['email', 'username', 'password', 'birth_date']
@@ -13,10 +15,17 @@ class ConfirmCodeSerializer(serializers.Serializer):
     confirm_code = serializers.IntegerField()
 
 
-class UpdateDestroyAccountSerializer(serializers.ModelSerializer):
+class UpdateDestroyAccountSerializer(ModelSerializer):
     class Meta:
         model = User
         fields = ['avatar', 'first_name', 'last_name', 'phone_number', 'password']
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'password']
+        extra_kwargs = {'password': {'write_only': True}}
 
 
 class PasswordResetRequestSerializer(serializers.Serializer):
@@ -24,11 +33,10 @@ class PasswordResetRequestSerializer(serializers.Serializer):
 
 
 class PasswordResetSerializer(serializers.Serializer):
-    token = serializers.CharField()
     new_password = serializers.CharField()
 
 
-class UserInfoSerializer(serializers.Serializer):
+class UserListSerializer(ModelSerializer):
     class Meta:
         model = User
         fields = '__all__'
