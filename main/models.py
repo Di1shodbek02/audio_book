@@ -13,26 +13,52 @@ class Category(MPTTModel):
         return self.name
 
 
+class Genre(models.Model):
+    name = models.CharField(max_length=250)
+
+    def __str__(self):
+        return self.name
+
+
 class Author(models.Model):
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100, blank=True, null=True)
+
+    def __str__(self):
+        return self.first_name + ' ' + self.last_name
 
 
 class Book(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
     author_id = models.ForeignKey(Author, on_delete=models.CASCADE)
-    genre = models.CharField(max_length=100)
+    genre = models.ManyToManyField(Genre)
     image = models.ImageField(upload_to='pics')
-    rating = models.IntegerField(default=0)
+    rating = models.FloatField(default=0)
     read_count = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     category_id = models.ForeignKey(Category, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+
+
+class Chapter(models.Model):
+    chapter_number = models.IntegerField()
+    name = models.CharField(max_length=200)
+    book_id = models.ForeignKey(Book, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
 
 
 class Library(models.Model):
     book_id = models.ForeignKey(Book, on_delete=models.CASCADE)
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return 'Book :' + self.book_id + '\n ' + 'User :' + self.user_id
 
 
 class Review(models.Model):
@@ -42,14 +68,17 @@ class Review(models.Model):
     rating = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return self.text
+
 
 class File(models.Model):
-    book_id = models.ForeignKey(Book, on_delete=models.CASCADE)
+    chapter_id = models.OneToOneField(Chapter, on_delete=models.CASCADE)
     file = models.FileField(upload_to='file')
 
 
 class Audio(models.Model):
-    book_id = models.ForeignKey(Book, on_delete=models.CASCADE)
+    chapter_id = models.OneToOneField(Chapter, on_delete=models.CASCADE)
     audio = models.FileField(upload_to='audio')
 
 

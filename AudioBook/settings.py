@@ -104,16 +104,17 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.accounts.password_validation.UserAttributeSimilarityValidator',
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+
     },
     {
-        'NAME': 'django.contrib.accounts.password_validation.MinimumLengthValidator',
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
     },
     {
-        'NAME': 'django.contrib.accounts.password_validation.CommonPasswordValidator',
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
     },
     {
-        'NAME': 'django.contrib.accounts.password_validation.NumericPasswordValidator',
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
 
@@ -158,17 +159,17 @@ SIMPLE_JWT = {
 }
 
 JAZZMIN_SETTINGS = {
-    "site_title": "GreenLife",
-    "site_header": "GreenLife",
-    "site_brand": "GreenLife",
+    "site_title": "AudioBook",
+    "site_header": "AudioBook",
+    "site_brand": "AudioBook",
     "site_icon": "images/favicon.png",
     "site_logo": None,
-    "welcome_sign": "Welcome to the GreenLife",
-    "copyright": "GreenLife",
+    "welcome_sign": "Welcome to the AudioBook",
+    "copyright": "AudioBook",
     "user_avatar": None,
 
     "topmenu_links": [
-        {"name": "GreenLife", "url": "home", "permissions": ["accounts.view_user"]},
+        {"name": "AudioBook", "url": "home", "permissions": ["accounts.view_user"]},
         {"model": "accounts.User"},
     ],
 
@@ -243,10 +244,11 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
-
+DEBUG = True
 STATIC_URL = 'static/'
 MEDIA_URL = 'media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # settings.py
