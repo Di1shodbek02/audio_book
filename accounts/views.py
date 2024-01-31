@@ -1,11 +1,17 @@
+import random
 from django.contrib.auth import get_user_model
 from rest_framework import generics, status
 from rest_framework.response import Response
-from .serializers import RegisterSerializer, ConfirmCodeSerializer
 from django.core.cache import cache
 from django.core.mail import send_mail
 from rest_framework.generics import GenericAPIView
-import random
+from rest_framework.decorators import api_view
+
+from dj_rest_auth.registration.views import SocialLoginView
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+
+from .serializers import RegisterSerializer, ConfirmCodeSerializer
 
 User = get_user_model()
 
@@ -66,3 +72,17 @@ class ConfirmCodeApiView(GenericAPIView):
                 return Response({'success': True})
         else:
             return Response({'message': 'The entered code is not valid!'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GoogleLogin(SocialLoginView):
+    adapter_class = GoogleOAuth2Adapter
+    callback_url = "http://lacalhost:8000/accounts/google/callback"
+    client_class = OAuth2Client
+
+
+@api_view(['GET'])
+def callback(request):
+    """Callback"""
+    code = request.GET.get('code')
+    res = request.post('http://localhost:8000/accounts/google', data={'code': code}, timeout=30)
+    return Response(res.json())

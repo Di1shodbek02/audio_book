@@ -5,6 +5,8 @@ from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from accounts.views import GoogleLogin
+
 schema_view = get_schema_view(
     openapi.Info(
         title="AudioBook API",
@@ -24,5 +26,8 @@ urlpatterns = [
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'), # noqa
     path('admin/', admin.site.urls),
     path('accounts/', include("accounts.urls")),
+    path('dj-rest-auth/', include('dj_rest_auth.urls')),
     path('main/', include("main.urls")),
+
+
 ]

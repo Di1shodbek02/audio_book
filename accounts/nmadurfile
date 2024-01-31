@@ -1,0 +1,2 @@
+'https://accounts.google.com/o/oauth2'  # http://127.0.0.1:8000/account/google/login/callback/
+volume image container network
