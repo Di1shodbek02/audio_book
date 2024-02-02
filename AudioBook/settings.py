@@ -25,8 +25,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'drf_yasg',  # noqa
 
-
-
     'accounts',
     'main',
     'rest_framework',
@@ -137,16 +135,16 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.accounts.password_validation.UserAttributeSimilarityValidator',
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
     },
     {
-        'NAME': 'django.contrib.accounts.password_validation.MinimumLengthValidator',
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
     },
     {
-        'NAME': 'django.contrib.accounts.password_validation.CommonPasswordValidator',
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
     },
     {
-        'NAME': 'django.contrib.accounts.password_validation.NumericPasswordValidator',
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
 
@@ -290,3 +288,5 @@ EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'ahmatovdilshodbek@gmail.com'
 EMAIL_HOST_PASSWORD = 'zljvuwhavuvhqoir'
+
+# https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=https://09b6-178-218-201-17.ngrok-free.app/accounts/google/callback&prompt=consent&response_type=code&client_id=41419922659-o40vgdpk5jd87q93ll4r26b3jk9pcnnb.apps.googleusercontent.com&scope=openid%20email%20profile&access_type=offline

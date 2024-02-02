@@ -1,18 +1,25 @@
+import os
 import random
-from django.contrib.auth import get_user_model
+import requests
+from django.core.cache import cache
+from django.shortcuts import redirect
+from django.core.mail import send_mail
+from rest_framework.views import APIView
 from rest_framework import generics, status
 from rest_framework.response import Response
-from django.core.cache import cache
-from django.core.mail import send_mail
-from rest_framework.generics import GenericAPIView
+from django.contrib.auth import get_user_model
 from rest_framework.decorators import api_view
+from rest_framework.generics import GenericAPIView
 
+from allauth.socialaccount.models import SocialApp
 from dj_rest_auth.registration.views import SocialLoginView
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from dotenv import load_dotenv
 
 from .serializers import RegisterSerializer, ConfirmCodeSerializer
 
+load_dotenv()
 User = get_user_model()
 
 
@@ -74,9 +81,21 @@ class ConfirmCodeApiView(GenericAPIView):
             return Response({'message': 'The entered code is not valid!'}, status=status.HTTP_400_BAD_REQUEST)
 
 
+class RedirectToGoogleApiView(APIView):
+    def get(self, request):
+        google_redirect_uri = os.getenv('GOOGLE_REDIRECT_URL')
+        try:
+            google_client_id = SocialApp.objects.get(provider='google').client_id
+        except SocialApp.DoesNotExist:
+            return Response({'success': False, 'message': 'SocialApp does not exist'}, status=404)
+        url = f'https://accounts.google.com/o/oauth2/v2/auth?redirect_uri={google_redirect_uri}&prompt=consent&response_type=code&client_id={google_client_id}&scope=openid email profile&access_type=offline'
+
+        return redirect(url)
+
+
 class GoogleLogin(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
-    callback_url = "http://lacalhost:8000/accounts/google/callback"
+    callback_url = "https://c744-178-218-201-17.ngrok-free.app/accounts/google/callback"
     client_class = OAuth2Client
 
 
@@ -84,5 +103,5 @@ class GoogleLogin(SocialLoginView):
 def callback(request):
     """Callback"""
     code = request.GET.get('code')
-    res = request.post('http://localhost:8000/accounts/google', data={'code': code}, timeout=30)
+    res = requests.post("https://c744-178-218-201-17.ngrok-free.app/accounts/google", data={'code': code}, timeout=30)
     return Response(res.json())
