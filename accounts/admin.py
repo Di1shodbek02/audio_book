@@ -1,5 +1,6 @@
 from django.contrib import admin
 
+
 from .models import Role, UserRole
 
 
@@ -11,3 +12,7 @@ class RoleAdmin(admin.ModelAdmin):
 @admin.register(UserRole)
 class UserRoleAdmin(admin.ModelAdmin):
     pass
+
+from .models import User
+admin.site.register((User,))
+
