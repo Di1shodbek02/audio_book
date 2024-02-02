@@ -61,7 +61,6 @@ class BookView(GenericAPIView):
         bookmark_cache = cache.get(request.user.id)
         if not request.user.id == bookmark_cache.get('user_id'):
             pass
-        print(bookmark_cache)
         book__data = Book.objects.get(pk=book_id)
         book_data = self.serializer_class(book__data)
 
