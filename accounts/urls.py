@@ -1,8 +1,9 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .views import RegistrationAPIView, ConfirmCodeApiView, PasswordResetView, PasswordResetRequestView, \
+from .views import PasswordResetView, PasswordResetRequestView, \
     UserLict, UserUpdateGenericAPIView, LogoutAPIView
+from .views import RegistrationAPIView, ConfirmCodeApiView, GoogleLogin, callback, RedirectToGoogleApiView
 
 urlpatterns = [
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
@@ -14,4 +15,7 @@ urlpatterns = [
     path('update-user/', UserUpdateGenericAPIView.as_view(), name='user-update'),
     path('user-list', UserLict.as_view(), name='user-list'),
     path('log-out', LogoutAPIView.as_view(), name='log_out'),
+    path('google', GoogleLogin.as_view(), name='google_login'),
+    path('google-login', RedirectToGoogleApiView.as_view(), name='google_login2'),
+    path('google/callback', callback, name='google_callback'),
 ]

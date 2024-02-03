@@ -28,10 +28,38 @@ INSTALLED_APPS = [
     'accounts',
     'main',
     'rest_framework',
+    'rest_framework.authtoken',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
-    'django_rest_passwordreset', # noqa
+    'django_rest_passwordreset',  # noqa
+
+    # Google
+    'dj_rest_auth', # noqa
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
 ]
+
+# Google
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
+SITE_ID = 1
+LOGIN_REDIRECT_URL = '/'
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        }
+    }
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -41,6 +69,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    # Google
+    'allauth.account.middleware.AccountMiddleware', # noqa
 ]
 
 ROOT_URLCONF = 'AudioBook.urls'
@@ -245,14 +276,12 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
-DEBUG = True
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 MEDIA_URL = 'media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -266,3 +295,5 @@ EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'audiobookpdp@gmail.com'
 EMAIL_HOST_PASSWORD = 'rlehkedzsnkheavd'
+
+# https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=https://09b6-178-218-201-17.ngrok-free.app/accounts/google/callback&prompt=consent&response_type=code&client_id=41419922659-o40vgdpk5jd87q93ll4r26b3jk9pcnnb.apps.googleusercontent.com&scope=openid%20email%20profile&access_type=offline

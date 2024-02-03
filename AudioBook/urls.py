@@ -33,7 +33,10 @@ urlpatterns = [
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'), # noqa
     path('admin/', admin.site.urls),
     path('accounts/', include("accounts.urls")),
+    path('dj-rest-auth/', include('dj_rest_auth.urls')),
     path('main/', include("main.urls")),
+
+
 ]
 
 if settings.DEBUG:

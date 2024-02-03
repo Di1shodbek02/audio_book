@@ -33,8 +33,9 @@ class PasswordResetRequestSerializer(serializers.Serializer):
 
 
 class PasswordResetSerializer(serializers.Serializer):
+    class Meta:
+        ref_name = 'AccountsPasswordResetSerializer'
     new_password = serializers.CharField()
-
 
 class UserListSerializer(ModelSerializer):
     class Meta:

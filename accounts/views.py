@@ -1,24 +1,37 @@
-import random
-
-from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
-from django.core.cache import cache
 from django.utils.encoding import force_str, force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from passlib.context import CryptContext
-from rest_framework import status
-from rest_framework.generics import GenericAPIView, CreateAPIView, ListAPIView, UpdateAPIView, DestroyAPIView
+from rest_framework.generics import CreateAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .permissions import IsAdminPermission
 from .serializers import PasswordResetSerializer, PasswordResetRequestSerializer, UpdateDestroyAccountSerializer, \
-    RegisterSerializer, ConfirmCodeSerializer, UserListSerializer
+    UserListSerializer
 from .tasks import send_email, send_forget_password
+import os
+import random
+import requests
+from django.core.cache import cache
+from django.shortcuts import redirect
+from rest_framework.views import APIView
+from rest_framework import status
+from rest_framework.response import Response
+from django.contrib.auth import get_user_model
+from rest_framework.decorators import api_view
+from rest_framework.generics import GenericAPIView
 
+from allauth.socialaccount.models import SocialApp
+from dj_rest_auth.registration.views import SocialLoginView
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from dotenv import load_dotenv
+
+from .serializers import RegisterSerializer, ConfirmCodeSerializer
+
+load_dotenv()
 User = get_user_model()
 
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
@@ -151,3 +164,29 @@ class LogoutAPIView(APIView):
         token = RefreshToken(refresh_token)
         token.blacklist()
         return Response(status=204)
+
+
+class RedirectToGoogleApiView(APIView):
+    def get(self, request):
+        google_redirect_uri = os.getenv('GOOGLE_REDIRECT_URL')
+        try:
+            google_client_id = SocialApp.objects.get(provider='google').client_id
+        except SocialApp.DoesNotExist:
+            return Response({'success': False, 'message': 'SocialApp does not exist'}, status=404)
+        url = f'https://accounts.google.com/o/oauth2/v2/auth?redirect_uri={google_redirect_uri}&prompt=consent&response_type=code&client_id={google_client_id}&scope=openid email profile&access_type=offline'
+
+        return redirect(url)
+
+
+class GoogleLogin(SocialLoginView):
+    adapter_class = GoogleOAuth2Adapter
+    callback_url = "https://c744-178-218-201-17.ngrok-free.app/accounts/google/callback"
+    client_class = OAuth2Client
+
+
+@api_view(['GET'])
+def callback(request):
+    """Callback"""
+    code = request.GET.get('code')
+    res = requests.post("https://c744-178-218-201-17.ngrok-free.app/accounts/google", data={'code': code}, timeout=30)
+    return Response(res.json())
