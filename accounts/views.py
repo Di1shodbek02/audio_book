@@ -15,6 +15,7 @@ from allauth.socialaccount.models import SocialApp
 from dj_rest_auth.registration.views import SocialLoginView
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
 from dotenv import load_dotenv
 
 from .serializers import RegisterSerializer, ConfirmCodeSerializer
@@ -81,6 +82,7 @@ class ConfirmCodeApiView(GenericAPIView):
             return Response({'message': 'The entered code is not valid!'}, status=status.HTTP_400_BAD_REQUEST)
 
 
+# Google sign-in
 class RedirectToGoogleApiView(APIView):
     def get(self, request):
         google_redirect_uri = os.getenv('GOOGLE_REDIRECT_URL')
@@ -95,7 +97,7 @@ class RedirectToGoogleApiView(APIView):
 
 class GoogleLogin(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
-    callback_url = "https://c744-178-218-201-17.ngrok-free.app/accounts/google/callback"
+    callback_url = "https://94f9-178-218-201-17.ngrok-free.app/accounts/google/callback"
     client_class = OAuth2Client
 
 
@@ -103,5 +105,36 @@ class GoogleLogin(SocialLoginView):
 def callback(request):
     """Callback"""
     code = request.GET.get('code')
-    res = requests.post("https://c744-178-218-201-17.ngrok-free.app/accounts/google", data={'code': code}, timeout=30)
+    res = requests.post("https://94f9-178-218-201-17.ngrok-free.app/accounts/google", data={'code': code}, timeout=30)
+    return Response(res.json())
+
+
+# Facebook sign-in
+class RedirectToFacebookApiView(APIView):
+    def get(self, request):
+        facebook_redirect_uri = os.getenv('FACEBOOK_REDIRECT_URI')
+        try:
+            facebook_app_id = SocialApp.objects.get(provider='facebook').client_id
+        except SocialApp.DoesNotExist:
+            return Response({'success': False, 'message': 'Social does not exist'}, status=404)
+        url = f'https://www.facebook.com/v9.0/dialog/oauth?client_id={facebook_app_id}&redirect_uri={facebook_redirect_uri}&scope=email,public_profile'
+        return redirect(url)
+
+
+class FacebookLogin(SocialLoginView):
+    adapter_class = FacebookOAuth2Adapter
+    callback_url = "https://94f9-178-218-201-17.ngrok-free.app/accounts/facebook/callback"
+    client_class = OAuth2Client
+
+
+@api_view(['GET'])
+def callback_facebook(request):
+    """Callback"""
+    code = request.GET.get('code')
+    res = requests.post("https://graph.facebook.com/v9.0/oauth/access_token", data={
+        'client_id': os.getenv('FACEBOOK_APP_ID'),
+        'redirect_uri': os.getenv('FACEBOOK_REDIRECT_URL'),
+        'client_secret': os.getenv('FACEBOOK_APP_SECRET'),
+        'code': code
+    })
     return Response(res.json())
