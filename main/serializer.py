@@ -62,23 +62,26 @@ class BookSerializerAll(ModelSerializer):
         fields = '__all__'
 
 
-class BookSerializerForChapter(ModelSerializer):
-    author = AuthorSerializer()
-
-    class Meta:
-        model = Book
-        fields = ('name', 'author', 'image')
-
-
 class ChapterSerializer(ModelSerializer):
     file = FileSerializerForChapter()
     audio = AudioSerializerForChapter()
-    book = BookSerializerForChapter(read_only=True)
+
 
     class Meta:
         model = Chapter
         # exclude = ('book_id',)
         fields = '__all__'
+
+
+class BookSerializerForChapter(ModelSerializer):
+    author = AuthorSerializer()
+    chapter = ChapterSerializer()
+    file = FileSerializerForChapter()
+    audio = AudioSerializerForChapter()
+
+    class Meta:
+        model = Book
+        fields = ('name', 'author', 'image', 'audio', 'file')
 
 
 class BookMarkSerializer(serializers.Serializer):

@@ -2,7 +2,7 @@ from django.urls import path
 
 from main.views import CategoryRead, GenreReadAPIView, AuthorGetAll, GetBookAPIView, \
     ChapterDetailAPIView, GetChapters, BooksByNewRelease, BooksByTrendingNow, BooksBelongsToCategory, BookView, \
-    BookmarkView, CategorySearch, BookSearch, GenreSearch, AuthorSearch
+    BookmarkView, CategorySearch, BookSearch, GenreSearch, AuthorSearch, BooksByAuthorView, BooksByGenreView
 
 urlpatterns = [
     path('categories/', CategoryRead.as_view()),
@@ -20,4 +20,7 @@ urlpatterns = [
     path('search-book', BookSearch.as_view(), name='search-book'),
     path('search-genre', GenreSearch.as_view(), name='search-genre'),
     path('search-author', AuthorSearch.as_view(), name='search-author'),
+    path('book-by-author/<int:author_id>/', BooksByAuthorView.as_view()),
+    path('book-by-genre/<int:genre_id>/', BooksByGenreView.as_view()),
+
 ]

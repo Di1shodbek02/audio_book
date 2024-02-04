@@ -1,3 +1,8 @@
+
+import tarfile
+from datetime import datetime
+
+
 from django.core.cache import cache
 from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated
@@ -6,7 +11,7 @@ from rest_framework import filters
 
 from .models import Category, Genre, Author, Book, File, Audio, Chapter
 from .serializer import CategorySerializer, GenreSerializer, \
-    AuthorSerializer, BookSerializerAll, ChapterSerializer, BookMarkSerializer
+    AuthorSerializer, BookSerializerAll, ChapterSerializer, BookMarkSerializer, BookSerializerForChapter
 
 
 class CategoryRead(GenericAPIView):
@@ -59,8 +64,21 @@ class BookView(GenericAPIView):
 
     def get(self, request, book_id):
         bookmark_cache = cache.get(request.user.id)
+
         if not request.user.id == bookmark_cache.get('user_id'):
             pass
+
+        if request.user.id == bookmark_cache.get('user_id'):
+            chapter_id = bookmark_cache.get('chapter_id')
+            book_id = bookmark_cache.get('book_id')
+            book = Book.objects.get(id=book_id)
+            serialized = BookSerializerForChapter(book)
+            # serialized.data['chapter'] = Chapter.objects.filter(book_id=book_id, id=chapter_id).values()
+            serialized.data['file'] = File.objects.filter(chapter_id=chapter_id).values()
+            serialized.data['audio'] = Author.objects.filter(chapter_id=chapter_id).values()
+
+            return Response({'success': True, 'book': serialized})
+        print(bookmark_cache)
         book__data = Book.objects.get(pk=book_id)
         book_data = self.serializer_class(book__data)
 
@@ -141,7 +159,7 @@ class BookmarkView(GenericAPIView):
             'book_id': book_id
         }
 
-        cache.set(user, data)
+        cache.set(user, data, timeout=86400)
 
         return Response({'succes': True})
 
@@ -172,4 +190,26 @@ class AuthorSearch(ListAPIView):
     serializer_class = AuthorSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ['first_name']
+
+
+class BooksByAuthorView(GenericAPIView):
+    serializer_class = BookSerializerAll
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, author_id):
+        book__data = Book.objects.filter(author_id=author_id)
+        book_data = self.serializer_class(book__data, many=True)
+
+        return Response({'book_by_author': book_data.data})
+
+
+class BooksByGenreView(GenericAPIView):
+    serializer_class = BookSerializerAll
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, genre_id):
+        book__data = Book.objects.filter()
+        books = self.serializer_class(book__data, many=True)
+
+        return Response({'book_by_genre': books.data})
 
