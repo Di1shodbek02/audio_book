@@ -2,7 +2,8 @@ from django.urls import path
 
 from main.views import CategoryRead, GenreReadAPIView, AuthorGetAll, GetBookAPIView, \
     ChapterDetailAPIView, GetChapters, BooksByNewRelease, BooksByTrendingNow, BooksBelongsToCategory, BookView, \
-    BookmarkView, CategorySearch, BookSearch, GenreSearch, AuthorSearch, BooksByAuthorView, BooksByGenreView
+    BookmarkView, CategorySearch, BookSearch, GenreSearch, AuthorSearch, BooksByAuthorView, BooksByGenreView, \
+    ReviewCreateView, RatingToReviewView, RatingForBook, ReviewOfBookView
 
 urlpatterns = [
     path('categories/', CategoryRead.as_view()),
@@ -22,5 +23,9 @@ urlpatterns = [
     path('search-author', AuthorSearch.as_view(), name='search-author'),
     path('book-by-author/<int:author_id>/', BooksByAuthorView.as_view()),
     path('book-by-genre/<int:genre_id>/', BooksByGenreView.as_view()),
+    path('review-create/', ReviewCreateView.as_view(), name='review-create'),
+    path('rating-for-review/', RatingToReviewView.as_view(), name='rating-review'),
+    path('rating-for-book/', RatingForBook.as_view(), name='rating-review'),
+    path('review-book/<int:book_id>/', ReviewOfBookView.as_view(), name='review-book')
 
 ]

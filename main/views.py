@@ -2,16 +2,18 @@
 import tarfile
 from datetime import datetime
 
-
+from django.http import Http404
 from django.core.cache import cache
 from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import filters
-
-from .models import Category, Genre, Author, Book, File, Audio, Chapter
+from django.db import transaction
+from .models import Category, Genre, Author, Book, File, Audio, Chapter, Review
 from .serializer import CategorySerializer, GenreSerializer, \
-    AuthorSerializer, BookSerializerAll, ChapterSerializer, BookMarkSerializer, BookSerializerForChapter
+    AuthorSerializer, BookSerializerAll, ChapterSerializer, BookMarkSerializer, BookSerializerForChapter, \
+    ReviewSerializer, RatingToReview, RatingForBookSerializer, ReviewGetSerializer
+from .utils import read_count
 
 
 class CategoryRead(GenericAPIView):
@@ -65,21 +67,21 @@ class BookView(GenericAPIView):
     def get(self, request, book_id):
         bookmark_cache = cache.get(request.user.id)
 
-        if not request.user.id == bookmark_cache.get('user_id'):
-            pass
 
-        if request.user.id == bookmark_cache.get('user_id'):
-            chapter_id = bookmark_cache.get('chapter_id')
-            book_id = bookmark_cache.get('book_id')
-            book = Book.objects.get(id=book_id)
-            serialized = BookSerializerForChapter(book)
-            # serialized.data['chapter'] = Chapter.objects.filter(book_id=book_id, id=chapter_id).values()
-            serialized.data['file'] = File.objects.filter(chapter_id=chapter_id).values()
-            serialized.data['audio'] = Author.objects.filter(chapter_id=chapter_id).values()
+        # if request.user.id == bookmark_cache.get('user_id'):
+        #     chapter_id = bookmark_cache.get('chapter_id')
+        #     book_id = bookmark_cache.get('book_id')
+        #     book = Book.objects.get(id=book_id)
+        #     serialized = BookSerializerForChapter(book)
+        #     # serialized.data['chapter'] = Chapter.objects.filter(book_id=book_id, id=chapter_id).values()
+        #     serialized.data['file'] = File.objects.filter(chapter_id=chapter_id).values()
+        #     serialized.data['audio'] = Author.objects.filter(chapter_id=chapter_id).values()
 
-            return Response({'success': True, 'book': serialized})
-        print(bookmark_cache)
+            # return Response({'success': True, 'book': serialized})
+
+        read_count.delay(book_id)
         book__data = Book.objects.get(pk=book_id)
+
         book_data = self.serializer_class(book__data)
 
         return Response({'success': book_data.data})
@@ -189,7 +191,7 @@ class AuthorSearch(ListAPIView):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
     filter_backends = [filters.SearchFilter]
-    search_fields = ['first_name']
+    search_fields = ['first_name', 'last_name']
 
 
 class BooksByAuthorView(GenericAPIView):
@@ -212,4 +214,90 @@ class BooksByGenreView(GenericAPIView):
         books = self.serializer_class(book__data, many=True)
 
         return Response({'book_by_genre': books.data})
+
+
+class ReviewCreateView(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = ReviewSerializer
+
+    def post(self, request):
+        data = request.data
+        data.update({'user_id': request.user.id})
+
+        review = self.serializer_class(data=data)
+        review.is_valid(raise_exception=True)
+        review.save()
+
+        return Response({'review': review.data})
+
+
+class RatingToReviewView(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = RatingToReview
+
+    def post(self, request):
+        review_id = request.data.get('review_id')
+        mark = request.data.get('mark')
+
+        if 0 < mark < 6:
+
+            try:
+                with transaction.atomic():
+                    review = Review.objects.select_for_update().get(pk=review_id)
+
+                    current_rating = review.rating
+                    current_mark_count = review.mark_count
+
+                    if current_mark_count != 0:
+                        review.rating = ((current_rating * current_mark_count) + mark) / (current_mark_count + 1)
+                    else:
+                        review.rating = mark
+                    review.mark_count = current_mark_count + 1
+                    review.save()
+
+                return Response({'success': True})
+
+            except Review.DoesNotExist:
+                raise Http404("Review matching query does not exist.")
+
+        raise Http404("Mark is incorrect")
+
+
+class RatingForBook(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = RatingForBookSerializer
+
+    def post(self, request):
+        book_id = request.data.get('book_id')
+        mark = request.data.get('mark')
+
+        if 0 < mark < 6:
+            try:
+                book = Book.objects.select_for_update().get(pk=book_id)
+
+                current_rating = book.rating
+                current_mark_count = book.count_rating
+
+                if current_mark_count != 0:
+                    book.rating = ((current_rating * current_mark_count) + mark) / (current_mark_count + 1)
+                else:
+                    book.rating = mark
+                book.count_rating = current_mark_count + 1
+                book.save()
+
+            except Book.DoesNotExist:
+                raise Http404('Book matching query does not exist')
+
+        raise Http404('Mark is incorrect')
+
+
+class ReviewOfBookView(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = ReviewGetSerializer
+
+    def get(self, request, book_id):
+        review__data = Review.objects.filter(book_id=book_id)
+        review = self.serializer_class(review__data, many=True)
+
+        return Response({'review': review.data})
 

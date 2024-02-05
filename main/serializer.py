@@ -1,6 +1,8 @@
 from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
-from main.models import Category, Genre, Author, Book, Audio, File, Chapter
+
+from accounts.serializers import UserInfo
+from main.models import Category, Genre, Author, Book, Audio, File, Chapter, Review
 
 
 class CategorySerializer(ModelSerializer):
@@ -52,6 +54,21 @@ class FileSerializerForChapter(ModelSerializer):
         fields = ('file',)
 
 
+class ReviewSerializer(ModelSerializer):
+
+    class Meta:
+        model = Review
+        exclude = ('mark_count', 'rating')
+
+
+class ReviewGetSerializer(ModelSerializer):
+    user_id = UserInfo()
+
+    class Meta:
+        model = Review
+        fields = '__all__'
+
+
 class BookSerializerAll(ModelSerializer):
     author_id = AuthorSerializer()
     genre = GenreSerializer(many=True)
@@ -65,7 +82,6 @@ class BookSerializerAll(ModelSerializer):
 class ChapterSerializer(ModelSerializer):
     file = FileSerializerForChapter()
     audio = AudioSerializerForChapter()
-
 
     class Meta:
         model = Chapter
@@ -84,13 +100,17 @@ class BookSerializerForChapter(ModelSerializer):
         fields = ('name', 'author', 'image', 'audio', 'file')
 
 
-class BookMarkSerializer(serializers.Serializer):
+class BookMarkSerializer(serializers.Serializer): # noqa
     book_id = serializers.IntegerField()
     chapter_id = serializers.IntegerField()
 
 
+class RatingToReview(serializers.Serializer): # noqa
+    mark = serializers.IntegerField()
+    review_id = serializers.IntegerField()
 
 
-
-
+class RatingForBookSerializer(serializers.Serializer): # noqa
+    mark = serializers.IntegerField()
+    book_id = serializers.IntegerField()
 

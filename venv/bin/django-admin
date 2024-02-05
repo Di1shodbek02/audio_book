@@ -1,4 +1,4 @@
-#!/home/secde1/PycharmProjects/audio_book/venv/bin/python
+#!/home/doniyor/PycharmProjects/audio_book/venv/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys

@@ -35,6 +35,7 @@ class Book(models.Model):
     genre = models.ManyToManyField(Genre)
     image = models.ImageField(upload_to='pics')
     rating = models.FloatField(default=0)
+    count_rating = models.IntegerField(default=0)
     read_count = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     category_id = models.ForeignKey(Category, on_delete=models.CASCADE)
@@ -65,7 +66,8 @@ class Review(models.Model):
     book_id = models.ForeignKey(Book, on_delete=models.CASCADE)
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     text = models.TextField()
-    rating = models.IntegerField()
+    rating = models.FloatField(default=0)
+    mark_count = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -89,3 +91,11 @@ class Subscription(models.Model):
     is_active = models.BooleanField(default=True)
     start_data = models.DateTimeField()
     and_data = models.DateTimeField()
+
+
+class Notification(models.Model):
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    title = models.CharField(max_length=200)
+    text = models.TextField()
+    status = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
