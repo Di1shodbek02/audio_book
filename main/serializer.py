@@ -1,6 +1,6 @@
 from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
-from main.models import Category, Genre, Author, Book, Audio, File, Chapter
+from main.models import Category, Genre, Author, Book, Audio, File, Chapter, UserPersonalize
 
 
 class CategorySerializer(ModelSerializer):
@@ -86,6 +86,12 @@ class BookMarkSerializer(serializers.Serializer):
     chapter_id = serializers.IntegerField()
 
 
+class UserPersonalizeSerializer(ModelSerializer):
+    category = CategorySerializer(many=True)
+
+    class Meta:
+        model = UserPersonalize
+        exclude = ('id',)
 
 
 

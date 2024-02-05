@@ -2,7 +2,7 @@ from django.urls import path
 
 from main.views import CategoryRead, GenreReadAPIView, AuthorGetAll, GetBookAPIView, \
     ChapterDetailAPIView, GetChapters, BooksByNewRelease, BooksByTrendingNow, BooksBelongsToCategory, BookView, \
-    BookmarkView, CategorySearch, BookSearch, GenreSearch, AuthorSearch
+    BookmarkView, CategorySearch, BookSearch, GenreSearch, AuthorSearch, CreateUserPersonalize
 
 urlpatterns = [
     path('categories/', CategoryRead.as_view()),
@@ -16,8 +16,10 @@ urlpatterns = [
     path('books-by-category/<int:category_id>/', BooksBelongsToCategory.as_view()),
     path('book-detail/<int:book_id>/', BookView.as_view()),
     path('bookmark-button/', BookmarkView.as_view()),
-    path('search-category', CategorySearch.as_view(), name='search-category'),
-    path('search-book', BookSearch.as_view(), name='search-book'),
-    path('search-genre', GenreSearch.as_view(), name='search-genre'),
-    path('search-author', AuthorSearch.as_view(), name='search-author'),
+    path('search-category/', CategorySearch.as_view(), name='search-category'),
+    path('search-book/', BookSearch.as_view(), name='search-book'),
+    path('search-genre/', GenreSearch.as_view(), name='search-genre'),
+    path('search-author/', AuthorSearch.as_view(), name='search-author'),
+    path('user-personalize/', CreateUserPersonalize.as_view(), name='user-personalize')
 ]
+

@@ -18,7 +18,7 @@ class ConfirmCodeSerializer(serializers.Serializer):
 class UpdateDestroyAccountSerializer(ModelSerializer):
     class Meta:
         model = User
-        fields = ['avatar', 'first_name', 'last_name', 'phone_number', 'password']
+        fields = ['avatar', 'first_name', 'last_name', 'phone_number']
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -32,10 +32,9 @@ class PasswordResetRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
 
-class PasswordResetSerializer(serializers.Serializer):
-    class Meta:
-        ref_name = 'AccountsPasswordResetSerializer'
+class PasswordResetLoginSerializer(serializers.Serializer):
     new_password = serializers.CharField()
+
 
 class UserListSerializer(ModelSerializer):
     class Meta:

@@ -6,7 +6,7 @@ from rest_framework import filters
 
 from .models import Category, Genre, Author, Book, File, Audio, Chapter
 from .serializer import CategorySerializer, GenreSerializer, \
-    AuthorSerializer, BookSerializerAll, ChapterSerializer, BookMarkSerializer
+    AuthorSerializer, BookSerializerAll, ChapterSerializer, BookMarkSerializer, UserPersonalizeSerializer
 
 
 class CategoryRead(GenericAPIView):
@@ -157,7 +157,7 @@ class BookSearch(ListAPIView):
     queryset = Book.objects.all()
     serializer_class = BookSerializerAll
     filter_backends = [filters.SearchFilter]
-    search_fields = ['name']
+    search_fields = ['name', 'genre']
 
 
 class GenreSearch(ListAPIView):
@@ -171,5 +171,16 @@ class AuthorSearch(ListAPIView):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
     filter_backends = [filters.SearchFilter]
-    search_fields = ['first_name']
+    search_fields = ['first_name', 'last_name']
 
+
+class CreateUserPersonalize(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = UserPersonalizeSerializer
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data) # noqa
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response({'user_personalize': serializer.data})

@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .permissions import IsAdminPermission
-from .serializers import PasswordResetSerializer, PasswordResetRequestSerializer, UpdateDestroyAccountSerializer, \
+from .serializers import PasswordResetLoginSerializer, PasswordResetRequestSerializer, UpdateDestroyAccountSerializer, \
     UserListSerializer
 from .tasks import send_email, send_forget_password
 import os
@@ -32,6 +32,7 @@ from dotenv import load_dotenv
 from .serializers import RegisterSerializer, ConfirmCodeSerializer
 
 load_dotenv()
+
 User = get_user_model()
 
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
@@ -107,14 +108,14 @@ class PasswordResetRequestView(GenericAPIView):
 
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             token = default_token_generator.make_token(user)
-            reset_link = f"http://10.10.3.132:8000/accounts/reset-password/{uid}/{token}/"
+            reset_link = f"http://192.168.1.15:8000/accounts/reset-password/{uid}/{token}/"
             send_forget_password.delay(email, reset_link)
             return Response({'success': 'Password reset link sent'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PasswordResetView(GenericAPIView):
-    serializer_class = PasswordResetSerializer
+    serializer_class = PasswordResetLoginSerializer
 
     def post(self, request, uid, token):
 
@@ -145,15 +146,15 @@ class UserLict(ListAPIView):
 class UserUpdateGenericAPIView(GenericAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = UpdateDestroyAccountSerializer
-
     def post(self, request):
         try:
             serializer = self.get_serializer(data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save()
         except Exception as e:
-            return Response({'success': False, 'message': str(e)}, status=400)
-        return Response({'success': True})
+            return Response({'s'
+                             'uccess': False, 'message': str(e)}, status=400)
+        return Response({' success': True})
 
 
 class LogoutAPIView(APIView):

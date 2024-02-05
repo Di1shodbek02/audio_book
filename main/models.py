@@ -1,13 +1,21 @@
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 from mptt.fields import TreeForeignKey
 from mptt.models import MPTTModel
 
-from accounts.models import User
+from django.contrib.auth.views import get_user_model
+
+User = get_user_model()
 
 
 class Category(MPTTModel):
     parent = TreeForeignKey('self', blank=True, null=True, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
+
+
+class UserPersonalize(models.Model):
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    personalize = models.ManyToManyField(Category)
 
     def __str__(self):
         return self.name
@@ -58,7 +66,7 @@ class Library(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
-        return 'Book :' + self.book_id + '\n ' + 'User :' + self.user_id
+        return 'Book :' + self.book_id + '\n ' + 'User :' + self.user_id  # noqa
 
 
 class Review(models.Model):
