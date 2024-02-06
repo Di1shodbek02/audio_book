@@ -7,6 +7,9 @@ class User(AbstractUser):
     avatar = models.FileField(upload_to='pics', blank=True, null=True)
     birth_date = models.DateTimeField(blank=True, null=True)
 
+    def __str__(self):
+        return self.username
+
 
 class Role(models.Model):
     name = models.CharField(max_length=100)

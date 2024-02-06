@@ -1,6 +1,9 @@
-from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
-from main.models import Category, Genre, Author, Book, Audio, File, Chapter, UserPersonalize
+from rest_framework.serializers import ModelSerializer
+
+from accounts.serializers import UserInfo
+from main.models import Category, Genre, Author, Book, Audio, File, Chapter, Review
+from main.models import UserPersonalize
 
 
 class CategorySerializer(ModelSerializer):
@@ -52,6 +55,21 @@ class FileSerializerForChapter(ModelSerializer):
         fields = ('file',)
 
 
+class ReviewSerializer(ModelSerializer):
+
+    class Meta:
+        model = Review
+        exclude = ('mark_count', 'rating')
+
+
+class ReviewGetSerializer(ModelSerializer):
+    user_id = UserInfo()
+
+    class Meta:
+        model = Review
+        fields = '__all__'
+
+
 class BookSerializerAll(ModelSerializer):
     author_id = AuthorSerializer()
     genre = GenreSerializer(many=True)
@@ -62,18 +80,9 @@ class BookSerializerAll(ModelSerializer):
         fields = '__all__'
 
 
-class BookSerializerForChapter(ModelSerializer):
-    author = AuthorSerializer()
-
-    class Meta:
-        model = Book
-        fields = ('name', 'author', 'image')
-
-
 class ChapterSerializer(ModelSerializer):
     file = FileSerializerForChapter()
     audio = AudioSerializerForChapter()
-    book = BookSerializerForChapter(read_only=True)
 
     class Meta:
         model = Chapter
@@ -81,9 +90,21 @@ class ChapterSerializer(ModelSerializer):
         fields = '__all__'
 
 
-class BookMarkSerializer(serializers.Serializer):
+class BookSerializerForChapter(ModelSerializer):
+    author = AuthorSerializer()
+    chapter = ChapterSerializer()
+    file = FileSerializerForChapter()
+    audio = AudioSerializerForChapter()
+
+    class Meta:
+        model = Book
+        fields = ('name', 'author', 'image', 'audio', 'file')
+
+
+class BookMarkSerializer(serializers.Serializer): # noqa
     book_id = serializers.IntegerField()
     chapter_id = serializers.IntegerField()
+
 
 
 class UserPersonalizeSerializer(ModelSerializer):
@@ -93,7 +114,13 @@ class UserPersonalizeSerializer(ModelSerializer):
         model = UserPersonalize
         exclude = ('id',)
 
+class RatingToReview(serializers.Serializer): # noqa
+    mark = serializers.IntegerField()
+    review_id = serializers.IntegerField()
 
 
 
+class RatingForBookSerializer(serializers.Serializer): # noqa
+    mark = serializers.IntegerField()
+    book_id = serializers.IntegerField()
 

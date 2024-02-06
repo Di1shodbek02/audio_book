@@ -26,12 +26,14 @@ INSTALLED_APPS = [
     'drf_yasg',  # noqa
 
     'accounts',
-    'main',
+    'main.apps.CreateNotification',
+
     'rest_framework',
     'rest_framework.authtoken',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'django_rest_passwordreset',  # noqa
+
 
     # Google
     'dj_rest_auth', # noqa
@@ -197,11 +199,11 @@ JAZZMIN_SETTINGS = {
     "site_icon": "images/favicon.png",
     "site_logo": None,
     "welcome_sign": "Welcome to the AudioBook",
-    "copyright": "AudioBook",
+    "copyright": "Tukhtasinov",
     "user_avatar": None,
 
     "topmenu_links": [
-        {"name": "AudioBook", "url": "home", "permissions": ["accounts.view_user"]},
+        {"name": "AudioBook", "url": "http://127.0.0.1:8000/admin/", "permissions": ["accounts.view_user"]},
         {"model": "accounts.User"},
     ],
 
@@ -241,7 +243,7 @@ JAZZMIN_UI_TWEAKS = {
     "brand_small_text": False,
     "brand_colour": "navbar-dark",
     "accent": "accent-teal",
-    "navbar": "navbar-success",
+    "navbar": "navbar-dark",
     "no_navbar_border": False,
     "navbar_fixed": False,
     "layout_boxed": False,

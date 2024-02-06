@@ -1,35 +1,34 @@
+import os
+import random
+
+import requests
+from allauth.socialaccount.models import SocialApp
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from dj_rest_auth.registration.views import SocialLoginView
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
+from django.core.cache import cache
+from django.shortcuts import redirect
 from django.utils.encoding import force_str, force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from dotenv import load_dotenv
 from passlib.context import CryptContext
+from rest_framework import status
+from rest_framework.decorators import api_view
 from rest_framework.generics import CreateAPIView, ListAPIView
+from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .permissions import IsAdminPermission
 from .serializers import PasswordResetLoginSerializer, PasswordResetRequestSerializer, UpdateDestroyAccountSerializer, \
     UserListSerializer
-from .tasks import send_email, send_forget_password
-import os
-import random
-import requests
-from django.core.cache import cache
-from django.shortcuts import redirect
-from rest_framework.views import APIView
-from rest_framework import status
-from rest_framework.response import Response
-from django.contrib.auth import get_user_model
-from rest_framework.decorators import api_view
-from rest_framework.generics import GenericAPIView
-
-from allauth.socialaccount.models import SocialApp
-from dj_rest_auth.registration.views import SocialLoginView
-from allauth.socialaccount.providers.oauth2.client import OAuth2Client
-from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
-from dotenv import load_dotenv
-
 from .serializers import RegisterSerializer, ConfirmCodeSerializer
+from .tasks import send_email, send_forget_password
 
 load_dotenv()
 
@@ -146,15 +145,14 @@ class UserLict(ListAPIView):
 class UserUpdateGenericAPIView(GenericAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = UpdateDestroyAccountSerializer
+
     def post(self, request):
-        try:
-            serializer = self.get_serializer(data=request.data, partial=True)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-        except Exception as e:
-            return Response({'s'
-                             'uccess': False, 'message': str(e)}, status=400)
-        return Response({' success': True})
+        user_id = request.user.id
+        user = User.objects.get(id=user_id)
+        serializer = self.get_serializer(user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
 
 
 class LogoutAPIView(APIView):

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from main.models import Genre, Book, Category, File, Author, Audio, Library, Subscription, Review, Chapter
+from main.models import Genre, Book, Category, File, Author, Audio, Library, Subscription, Review, Chapter, Notification
 
 
-admin.site.register((Genre, Book, Category, File, Author, Audio, Library, Subscription, Review, Chapter))
+admin.site.register((Genre, Book, Category, File, Author, Audio, Library, Subscription, Review, Chapter, Notification))
