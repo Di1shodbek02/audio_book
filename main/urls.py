@@ -2,10 +2,9 @@ from django.urls import path
 
 from main.views import CategoryRead, GenreReadAPIView, AuthorGetAll, GetBookAPIView, \
     ChapterDetailAPIView, GetChapters, BooksByNewRelease, BooksByTrendingNow, BooksBelongsToCategory, BookView, \
- \
-    CreateUserPersonalize, BookmarkView, CategorySearch, BookSearch, GenreSearch, AuthorSearch, BooksByAuthorView, \
-    BooksByGenreView, \
-    ReviewCreateView, RatingToReviewView, RatingForBook, ReviewOfBookView
+    CreateUserPersonalize, BookmarkView, CategorySearch, BookSearch, BooksByAuthorView, BooksByGenreView, \
+    ReviewCreateView, RatingToReviewView, RatingForBook, ReviewOfBookView, NotificationAPIView, NotificationDetailView, \
+    AddBookLibrary, RecommendedBooksView, RecommendedCategories, NextBackChapterDetail
 
 urlpatterns = [
     path('categories/', CategoryRead.as_view()),
@@ -23,13 +22,17 @@ urlpatterns = [
     path('user-personalize/', CreateUserPersonalize.as_view(), name='user-personalize'),
     path('search-category', CategorySearch.as_view(), name='search-category'),
     path('search-book', BookSearch.as_view(), name='search-book'),
-    path('search-genre', GenreSearch.as_view(), name='search-genre'),
-    path('search-author', AuthorSearch.as_view(), name='search-author'),
     path('book-by-author/<int:author_id>/', BooksByAuthorView.as_view()),
     path('book-by-genre/<int:genre_id>/', BooksByGenreView.as_view()),
     path('review-create/', ReviewCreateView.as_view(), name='review-create'),
     path('rating-for-review/', RatingToReviewView.as_view(), name='rating-review'),
     path('rating-for-book/', RatingForBook.as_view(), name='rating-review'),
-    path('review-book/<int:book_id>/', ReviewOfBookView.as_view(), name='review-book')
+    path('review-book/<int:book_id>/', ReviewOfBookView.as_view(), name='review-book'),
+    path('notification/', NotificationAPIView.as_view(), name='notification'),
+    path('notification-detail/<int:pk>', NotificationDetailView.as_view(), name='notification-detail'),
+    path('book-dislike-like/', AddBookLibrary.as_view(), name='book-dislike-like'),
+    path('recommended-book/', RecommendedBooksView.as_view(), name='recommended-books'),
+    path('recommended-categories/', RecommendedCategories.as_view(), name='recommended-categories'),
+    path('next-chapter-detail/<int:book_id>/<int:chapter_number>/<int:purpose>/', NextBackChapterDetail.as_view(), name='next-back-chapter-detail'),
 
 ]

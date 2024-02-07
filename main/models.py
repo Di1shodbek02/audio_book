@@ -21,6 +21,14 @@ class UserPersonalize(models.Model):
         return self.name
 
 
+class UserPersonalizez_personalize(models.Model):
+    user_personalize = models.ForeignKey(UserPersonalize, on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+
+    class Meta:
+        pass
+
+
 class Genre(models.Model):
     name = models.CharField(max_length=250)
 
@@ -40,7 +48,7 @@ class Book(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
     author_id = models.ForeignKey(Author, on_delete=models.CASCADE)
-    genre= models.ManyToManyField(Genre)
+    genre = models.ManyToManyField(Genre)
     image = models.ImageField(upload_to='pics')
     rating = models.FloatField(default=0)
     count_rating = models.IntegerField(default=0)
@@ -59,7 +67,6 @@ class Chapter(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-
         return self.name
 
 

@@ -180,7 +180,7 @@ class RedirectToGoogleApiView(APIView):
 
 class GoogleLogin(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
-    callback_url = "https://c744-178-218-201-17.ngrok-free.app/accounts/google/callback"
+    callback_url = "https://c704-178-218-201-17.ngrok-free.app/accounts/google/callback"
     client_class = OAuth2Client
 
 
@@ -188,5 +188,5 @@ class GoogleLogin(SocialLoginView):
 def callback(request):
     """Callback"""
     code = request.GET.get('code')
-    res = requests.post("https://c744-178-218-201-17.ngrok-free.app/accounts/google", data={'code': code}, timeout=30)
+    res = requests.post("https://c704-178-218-201-17.ngrok-free.app/accounts/google", data={'code': code}, timeout=30)
     return Response(res.json())
