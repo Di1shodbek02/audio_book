@@ -40,7 +40,7 @@ class Book(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
     author_id = models.ForeignKey(Author, on_delete=models.CASCADE)
-    genre = models.ManyToManyField(Genre)
+    genre= models.ManyToManyField(Genre)
     image = models.ImageField(upload_to='pics')
     rating = models.FloatField(default=0)
     count_rating = models.IntegerField(default=0)

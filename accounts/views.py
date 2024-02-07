@@ -139,6 +139,7 @@ class PasswordResetView(GenericAPIView):
 class UserLict(ListAPIView):
     permission_classes = (IsAdminPermission,)
     queryset = User.objects.all()
+
     serializer_class = UserListSerializer
 
 
