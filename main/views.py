@@ -1,7 +1,3 @@
-
-import tarfile
-from datetime import datetime
-
 from django.http import Http404
 from django.core.cache import cache
 from rest_framework.generics import GenericAPIView, ListAPIView
@@ -9,11 +5,13 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import filters
 from django.db import transaction
-from .models import Category, Genre, Author, Book, File, Audio, Chapter, Review
+from .models import Category, Genre, Author, Book, File, Audio, Chapter, Review, Notification, Library, UserPersonalize
 from .serializer import CategorySerializer, GenreSerializer, \
     AuthorSerializer, BookSerializerAll, ChapterSerializer, BookMarkSerializer, BookSerializerForChapter, \
-    ReviewSerializer, RatingToReview, RatingForBookSerializer, ReviewGetSerializer
-from .utils import read_count
+    ReviewSerializer, RatingToReview, RatingForBookSerializer, ReviewGetSerializer, NotificationSerializer, \
+    LibrarySerializer, AddLibrarySerializer, ChapterSerializerForBookmark,\
+    NextBackChapterSerializer
+from .utils import read_count, notification_status
 
 
 class CategoryRead(GenericAPIView):
@@ -65,21 +63,28 @@ class BookView(GenericAPIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, book_id):
-        bookmark_cache = cache.get(request.user.id)
+        try:
+            bookmark_cache = cache.get(request.user.id)
 
+            if request.user.id == bookmark_cache.get('user_id'):
+                chapter_id = bookmark_cache.get('chapter_id')
+                book__id = bookmark_cache.get('book_id')
+                if book_id == book__id:
+                    chapter = Chapter.objects.get(id=chapter_id)
+                    serialized = ChapterSerializerForBookmark(chapter)
+                    serialized.data['book_id'] = Book.objects.filter(id=book__id).values()
 
-        # if request.user.id == bookmark_cache.get('user_id'):
-        #     chapter_id = bookmark_cache.get('chapter_id')
-        #     book_id = bookmark_cache.get('book_id')
-        #     book = Book.objects.get(id=book_id)
-        #     serialized = BookSerializerForChapter(book)
-        #     # serialized.data['chapter'] = Chapter.objects.filter(book_id=book_id, id=chapter_id).values()
-        #     serialized.data['file'] = File.objects.filter(chapter_id=chapter_id).values()
-        #     serialized.data['audio'] = Author.objects.filter(chapter_id=chapter_id).values()
+                    return Response({'success': True, 'book': serialized.data})
 
-            # return Response({'success': True, 'book': serialized})
+        except Exception as e:
+            return Response({'message': str(e)})
 
-        read_count.delay(book_id)
+        with transaction.atomic():
+            book = Book.objects.select_for_update().get(pk=book_id)
+            current_read_count = book.read_count
+            book.read_count = current_read_count + 1
+            book.save()
+
         book__data = Book.objects.get(pk=book_id)
 
         book_data = self.serializer_class(book__data)
@@ -163,7 +168,7 @@ class BookmarkView(GenericAPIView):
 
         cache.set(user, data, timeout=86400)
 
-        return Response({'succes': True})
+        return Response({'success': True})
 
 
 class CategorySearch(ListAPIView):
@@ -177,21 +182,14 @@ class BookSearch(ListAPIView):
     queryset = Book.objects.all()
     serializer_class = BookSerializerAll
     filter_backends = [filters.SearchFilter]
-    search_fields = ['name']
+    search_fields = ['name', 'genre__name', 'author_id__first_name', 'author_id__last_name', 'category_id__name']
 
-
-class GenreSearch(ListAPIView):
-    queryset = Genre.objects.all()
-    serializer_class = GenreSerializer
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['name']
-
-
-class AuthorSearch(ListAPIView):
-    queryset = Author.objects.all()
-    serializer_class = AuthorSerializer
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['first_name', 'last_name']
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        genre_name = self.request.query_params.get('genre_name')
+        if genre_name:
+            queryset = queryset.filter(genre__name__icontains=genre_name)
+        return queryset
 
 
 class BooksByAuthorView(GenericAPIView):
@@ -210,7 +208,7 @@ class BooksByGenreView(GenericAPIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, genre_id):
-        book__data = Book.objects.filter()
+        book__data = Book.objects.filter(genre_id=genre_id)
         books = self.serializer_class(book__data, many=True)
 
         return Response({'book_by_genre': books.data})
@@ -300,4 +298,99 @@ class ReviewOfBookView(GenericAPIView):
         review = self.serializer_class(review__data, many=True)
 
         return Response({'review': review.data})
+
+
+class NotificationAPIView(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = NotificationSerializer
+
+    def get(self, request):
+        notification__data = Notification.objects.filter(user_id=request.user.id)
+        notification = self.serializer_class(notification__data, many=True)
+
+        return Response({'notifications': notification.data})
+
+
+class NotificationDetailView(GenericAPIView):
+    serializer_class = NotificationSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, pk):
+        notification_status.delay(pk)
+        notification = Notification.objects.get(id=pk)
+        serializer = self.serializer_class(notification)
+
+        return Response({'notification': serializer.data})
+
+
+class AddBookLibrary(GenericAPIView):
+    serializer_class = AddLibrarySerializer
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        like = request.data.get('like')
+        book_id = request.data.get('book_id')
+        user_id = request.user.id
+        if like:
+            if Library.objects.filter(book_id=book_id, user_id=user_id).exists():
+                raise Exception({'detail': 'You already have such book'})
+            data = {
+                'book_id': book_id,
+                'user_id': user_id
+            }
+            library = LibrarySerializer(data=data)
+            library.is_valid(raise_exception=True)
+            library.save()
+
+            return Response({'message': 'Book Added Successfully'})
+
+        if not Library.objects.filter(book_id=book_id, user_id=user_id).exists():
+            raise Exception({'detail': 'Such Book Not Found in Your Library'})
+
+        library = Library.objects.get(book_id=book_id, user_id=user_id)
+        library.delete()
+
+        return Response({'message': 'Book Removed Successfully'})
+
+
+class RecommendedBooksView(GenericAPIView):
+    serializer_class = BookSerializerAll
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        book__data = Book.objects.filter().order_by('-created_at')
+        book = self.serializer_class(book__data, many=True)
+        return Response({'books': book.data})
+
+
+class RecommendedCategories(GenericAPIView):
+    serializer_class = CategorySerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        categories = UserPersonalize.objects.get(user_id=request.user).personalize.all()
+        category = self.serializer_class(categories, many=True)
+
+        return Response({'categories': category.data})
+
+
+class NextBackChapterDetail(GenericAPIView):
+    serializer_class = NextBackChapterSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, book_id, chapter_number, purpose):
+        if not purpose:
+            purpose = -1
+
+        try:
+            chapter = Chapter.objects.get(book_id=book_id,chapter_number=chapter_number+purpose)
+            chapter_serializer = ChapterSerializer(chapter)
+            chapter_serializer.data['file'] = File.objects.filter(chapter_id=chapter.id).values()
+            chapter_serializer.data['audio'] = Audio.objects.filter(chapter_id=chapter.id).values()
+
+            return Response({'chapter': chapter_serializer.data})
+        except Exception as e:
+            return Response({'detail': "Not Found Such Chapter"})
+
+
 

@@ -1,18 +1,24 @@
 from celery import shared_task
 from django.db import transaction
 
-from main.models import Book
+from main.models import Book, Notification
 
 
 @shared_task
 def read_count(book_id):
-    with transaction.atomic():
-        book = Book.objects.select_for_update().get(pk=book_id)
-        current_read_count = book.read_count
-        book.view_count = current_read_count + 1
-        book.save()
+
 
     return 'Done'
+
+
+@shared_task
+def notification_status(pk):
+    with transaction.atomic():
+        notifi = Notification.objects.select_for_update().get(id=pk)
+        notifi.status = True
+        notifi.save()
+
+    return 'Notification read'
 
 
 

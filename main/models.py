@@ -2,7 +2,9 @@ from django.db import models
 from mptt.fields import TreeForeignKey
 from mptt.models import MPTTModel
 
-from accounts.models import User
+from django.contrib.auth.views import get_user_model
+
+User = get_user_model()
 
 
 class Category(MPTTModel):
@@ -11,6 +13,11 @@ class Category(MPTTModel):
 
     def __str__(self):
         return self.name
+
+
+class UserPersonalize(models.Model):
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    personalize = models.ManyToManyField(Category)
 
 
 class Genre(models.Model):
