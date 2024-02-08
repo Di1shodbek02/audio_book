@@ -1,7 +1,7 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .views import (RegistrationAPIView, ConfirmCodeApiView, GoogleLogin, callback, RedirectToGoogleApiView,
+from .views import (RegistrationAPIView, ConfirmCodeApiView, GoogleLogin, callback_google, RedirectToGoogleAPIView,
                     FacebookLogin, RedirectToFacebookApiView, callback_facebook)
 
 urlpatterns = [
@@ -11,8 +11,8 @@ urlpatterns = [
     path('confirm-code', ConfirmCodeApiView.as_view(), name='confirm-code'),
     # Google
     path('google', GoogleLogin.as_view(), name='google_login'),
-    path('google-login', RedirectToGoogleApiView.as_view(), name='google_login2'),
-    path('google/callback', callback, name='google_callback'),
+    path('google-login', RedirectToGoogleAPIView.as_view(), name='google_login2'),
+    path('google/callback', callback_google, name='google_callback'),
     # Facebook
     path('facebook', FacebookLogin.as_view(), name='facebook'),
     path('facebook-login', RedirectToFacebookApiView.as_view(), name='facebook-login'),

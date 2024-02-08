@@ -36,7 +36,7 @@ INSTALLED_APPS = [
     # 'dj_rest_auth',
     'allauth',
     'allauth.account',
-    'dj_rest_auth.registration',
+    'dj_rest_auth.registration'
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.facebook',
@@ -76,14 +76,13 @@ WSGI_APPLICATION = 'AudioBook.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT')
+        'NAME': os.environ.get('DB_NAME'),
+        'USER': os.environ.get('DB_USER'),
+        'PASSWORD': os.environ.get('DB_PASSWORD'),
+        'HOST': os.environ.get('DB_HOST'),
+        'PORT': os.environ.get('DB_PORT'),
     }
 }
-
 REST_FRAMEWORK = {
     'DEFAULT_CACHE_BACKEND': 'django.core.cache.backends.django_redis.RedisCache',
     'DEFAULT_CACHE_ALIAS': 'default',
@@ -91,7 +90,6 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
 }
-
 REST_AUTH = {
     'USE_JWT': True,
     'JWT_AUTH_COOKIE': 'jwt-auth',
@@ -116,8 +114,10 @@ SWAGGER_SETTINGS = {
         }
     }
 }
+
 # Sign-in With GULGULU and Facebook
 AUTHENTICATION_BACKENDS = (
+    # 'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 )
 
@@ -135,6 +135,7 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
@@ -174,39 +175,48 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainSlidingSerializer",
     "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
 }
+
 JAZZMIN_SETTINGS = {
-    "site_title": "AudioBook",
-    "site_header": "AudioBook",
-    "site_brand": "AudioBook",
+    "site_title": "GreenLife",
+    "site_header": "GreenLife",
+    "site_brand": "GreenLife",
     "site_icon": "images/favicon.png",
     "site_logo": None,
-    "welcome_sign": "Welcome to the AudioBook",
-    "copyright": "AudioBook",
+    "welcome_sign": "Welcome to the GreenLife",
+    "copyright": "GreenLife",
     "user_avatar": None,
 
     "topmenu_links": [
-        {"name": "AudioBook", "url": "home", "permissions": ["auth.view_user"]},
+        {"name": "GreenLife", "url": "home", "permissions": ["accounts.view_user"]},
         {"model": "accounts.User"},
     ],
+
     "show_sidebar": True,
+
     "navigation_expanded": True,
 
     "icons": {
-        "auth": "fas fa-accounts-cog",
-        "auth.user": "fas fa-user",
-        "accounts.User": "fas fa-user",
-        "auth.Group": "fas fa-accounts",
+        "accounts": "fas fa-users-cog",
+        "accounts.user": "fas fa-user",
+        "users.User": "fas fa-user",
+        "accounts.Group": "fas fa-users",
         "admin.LogEntry": "fas fa-file",
     },
+
     "default_icon_parents": "fas fa-chevron-circle-right",
     "default_icon_children": "fas fa-arrow-circle-right",
+
     "related_modal_active": False,
+
     "custom_js": None,
+
     "show_ui_builder": False,
+
     "changeform_format": "horizontal_tabs",
+
     "changeform_format_overrides": {
-        "auth.user": "collapsible",
-        "auth.group": "vertical_tabs",
+        "accounts.user": "collapsible",
+        "accounts.group": "vertical_tabs",
     },
 }
 
@@ -242,6 +252,7 @@ JAZZMIN_UI_TWEAKS = {
     },
 }
 
+
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 
@@ -251,9 +262,9 @@ USE_TZ = True
 STATIC_URL = 'static/'
 MEDIA_URL = 'media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# settings.py
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
@@ -261,3 +272,5 @@ EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'ahmatovdilshodbek@gmail.com'
 EMAIL_HOST_PASSWORD = 'zljvuwhavuvhqoir'
+
+# https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=https://eff4-178-218-201-17.ngrok-free.app/accounts/google/callback&prompt=consent&response_type=code&client_id=766970402274-sgosldmns3aefq7vjvfb1nv3ufjavl7b.apps.googleusercontent.com&scope=openid%20email%20profile&access_type=offline
