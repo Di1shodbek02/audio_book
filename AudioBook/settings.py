@@ -34,35 +34,16 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'django_rest_passwordreset',  # noqa
 
-
     # Google
-    'dj_rest_auth', # noqa
+    'dj_rest_auth',  # noqa
+    # 'dj_rest_auth',
     'allauth',
     'allauth.account',
+    'dj_rest_auth.registration',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.facebook',
 ]
-
-# Google
-AUTHENTICATION_BACKENDS = (
-    'django.contrib.auth.backends.ModelBackend',
-    'allauth.account.auth_backends.AuthenticationBackend',
-)
-SITE_ID = 1
-LOGIN_REDIRECT_URL = '/'
-
-SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'SCOPE': [
-            'profile',
-            'email',
-        ],
-        'AUTH_PARAMS': {
-            'access_type': 'online',
-        }
-    }
-}
-
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -71,11 +52,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-
     # Google
-    'allauth.account.middleware.AccountMiddleware', # noqa
+    'allauth.account.middleware.AccountMiddleware',  # noqa
 ]
-
 ROOT_URLCONF = 'AudioBook.urls'
 
 TEMPLATES = [
@@ -97,6 +76,30 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'AudioBook.wsgi.application'
 
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT')
+    }
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_CACHE_BACKEND': 'django.core.cache.backends.django_redis.RedisCache',
+    'DEFAULT_CACHE_ALIAS': 'default',
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+REST_AUTH = {
+    'USE_JWT': True,
+    'JWT_AUTH_COOKIE': 'jwt-auth',
+}
+
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
@@ -107,14 +110,6 @@ CACHES = {
     }
 }
 
-REST_FRAMEWORK = {
-    'DEFAULT_CACHE_BACKEND': 'django.core.cache.backends.django_redis.RedisCache',
-    'DEFAULT_CACHE_ALIAS': 'default',
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
-
-}
 SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {
         'Bearer': {
@@ -124,17 +119,10 @@ SWAGGER_SETTINGS = {
         }
     }
 }
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': os.environ.get('DB_NAME'),
-        'USER': os.environ.get('DB_USER'),
-        'PASSWORD': os.environ.get('DB_PASSWORD'),
-        'HOST': os.environ.get('DB_HOST'),
-        'PORT': os.environ.get('DB_PORT'),
-    }
-}
+# Sign-in With GULGULU and Facebook
+AUTHENTICATION_BACKENDS = (
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -151,7 +139,6 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
@@ -191,7 +178,6 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainSlidingSerializer",
     "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
 }
-
 JAZZMIN_SETTINGS = {
     "site_title": "AudioBook",
     "site_header": "AudioBook",
@@ -203,36 +189,33 @@ JAZZMIN_SETTINGS = {
     "user_avatar": None,
 
     "topmenu_links": [
-        {"name": "AudioBook", "url": "http://127.0.0.1:8000/admin/", "permissions": ["accounts.view_user"]},
-        {"model": "accounts.User"},
-    ],
-
+        {"name": "AudioBook", "url": "http://127.0.0.1:8000/admin/", "permissions": ["accounts.view_user"]}],
+    "copyright": "AudioBook",
+    "user_avatar": None,
+    "topmenu_links":
+        [
+            {"name": "AudioBook", "url": "home", "permissions": ["auth.view_user"]},
+            {"model": "accounts.User"},
+        ],
     "show_sidebar": True,
-
     "navigation_expanded": True,
 
     "icons": {
-        "accounts": "fas fa-users-cog",
-        "accounts.user": "fas fa-user",
-        "users.User": "fas fa-user",
-        "accounts.Group": "fas fa-users",
+        "auth": "fas fa-accounts-cog",
+        "auth.user": "fas fa-user",
+        "accounts.User": "fas fa-user",
+        "auth.Group": "fas fa-accounts",
         "admin.LogEntry": "fas fa-file",
     },
-
     "default_icon_parents": "fas fa-chevron-circle-right",
     "default_icon_children": "fas fa-arrow-circle-right",
-
     "related_modal_active": False,
-
     "custom_js": None,
-
     "show_ui_builder": False,
-
     "changeform_format": "horizontal_tabs",
-
     "changeform_format_overrides": {
-        "accounts.user": "collapsible",
-        "accounts.group": "vertical_tabs",
+        "auth.user": "collapsible",
+        "auth.group": "vertical_tabs",
     },
 }
 
@@ -268,16 +251,12 @@ JAZZMIN_UI_TWEAKS = {
     },
 }
 
-# Internationalization
-# https://docs.djangoproject.com/en/5.0/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
 
 USE_I18N = True
-
 USE_TZ = True
+
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
@@ -297,5 +276,3 @@ EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'audiobookpdp@gmail.com'
 EMAIL_HOST_PASSWORD = 'rlehkedzsnkheavd'
-
-# https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=https://09b6-178-218-201-17.ngrok-free.app/accounts/google/callback&prompt=consent&response_type=code&client_id=41419922659-o40vgdpk5jd87q93ll4r26b3jk9pcnnb.apps.googleusercontent.com&scope=openid%20email%20profile&access_type=offline
