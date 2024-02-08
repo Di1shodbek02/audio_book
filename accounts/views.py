@@ -138,7 +138,7 @@ def callback_facebook(request):
 class RedirectToGoogleAPIView(APIView):
 
     def get(self, request):
-        google_redirect_uri = os.getenv('GOOGLE_REDIRECT_URI')
+        google_redirect_uri = os.getenv('GOOGLE_REDIRECT_URL')
         try:
             google_client_id = SocialApp.objects.get(provider='google').client_id
         except SocialApp.DoesNotExist:
@@ -147,7 +147,7 @@ class RedirectToGoogleAPIView(APIView):
         return redirect(url)
 
 
-class GoogleLogin(SocialLoginView):  # if you want to use Authorization Code Grant, use this
+class GoogleLogin(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
     callback_url = 'https://eff4-178-218-201-17.ngrok-free.app/accounts/google/callback'
     client_class = OAuth2Client
@@ -157,5 +157,4 @@ class GoogleLogin(SocialLoginView):  # if you want to use Authorization Code Gra
 def callback_google(request):
     code = request.GET.get("code")
     res = requests.post("https://eff4-178-218-201-17.ngrok-free.app/accounts/google", data={"code": code}, timeout=30)
-    print('Response >>>', res.json())
     return Response(res.json())
