@@ -1,8 +1,11 @@
+import os
+
 from django.core.cache import cache
 from django.db import transaction
+from django.http import FileResponse
 from django.http import Http404
-from rest_framework import filters
-from rest_framework.generics import GenericAPIView, ListAPIView
+from rest_framework import filters, status
+from rest_framework.generics import GenericAPIView, ListAPIView, get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -67,17 +70,6 @@ class BookView(GenericAPIView):
     def get(self, request, book_id):
         try:
             bookmark_cache = cache.get(request.user.id)
-
-            # if request.user.id == bookmark_cache.get('user_id'):
-            #     chapter_id = bookmark_cache.get('chapter_id')
-            #     book_id = bookmark_cache.get('book_id')
-            #     book = Book.objects.get(id=book_id)
-            #     serialized = BookSerializerForChapter(book)
-            #     # serialized.data['chapter'] = Chapter.objects.filter(book_id=book_id, id=chapter_id).values()
-            #     serialized.data['file'] = File.objects.filter(chapter_id=chapter_id).values()
-            #     serialized.data['audio'] = Author.objects.filter(chapter_id=chapter_id).values()
-
-            # return Response({'success': True, 'book': serialized})
             if request.user.id == bookmark_cache.get('user_id'):
                 chapter_id = bookmark_cache.get('chapter_id')
                 book__id = bookmark_cache.get('book_id')
@@ -89,17 +81,15 @@ class BookView(GenericAPIView):
                     return Response({'success': True, 'book': serialized.data})
 
         except Exception as e:
-            return Response({'message': str(e)})
+            with transaction.atomic():
+                book = Book.objects.select_for_update().get(pk=book_id)
+                current_read_count = book.read_count
+                book.read_count = current_read_count + 1
+                book.save()
 
-        with transaction.atomic():
-            book = Book.objects.select_for_update().get(pk=book_id)
-            current_read_count = book.read_count
-            book.read_count = current_read_count + 1
-            book.save()
+            book__data = Book.objects.get(pk=book_id)
 
-        book__data = Book.objects.get(pk=book_id)
-
-        book_data = self.serializer_class(book__data)
+            book_data = self.serializer_class(book__data)
 
         return Response({'success': book_data.data})
 
@@ -220,11 +210,10 @@ class BooksByGenreView(GenericAPIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, genre_id):
-        book__data = Book.objects.filter(genre_id=genre_id)
-        books = self.serializer_class(book__data, many=True)
+        book_data = Book.objects.filter(genre=genre_id)
+        books = self.serializer_class(book_data, many=True)
 
         return Response({'book_by_genre': books.data})
-
 
 class ReviewCreateView(GenericAPIView):
     permission_classes = (IsAuthenticated,)
@@ -401,7 +390,7 @@ class RecommendedCategories(GenericAPIView):
 class NextBackChapterDetail(GenericAPIView):
     serializer_class = NextBackChapterSerializer
     permission_classes = (IsAuthenticated,)
-
+    
     def get(self, request, book_id, chapter_number, purpose):
         if not purpose:
             purpose = -1
@@ -415,3 +404,34 @@ class NextBackChapterDetail(GenericAPIView):
             return Response({'chapter': chapter_serializer.data})
         except Exception as e:
             return Response({'detail': "Not Found Such Chapter"})
+
+class PDFFileDownload(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, hashcode):
+        try:
+            file_instance = File.objects.get(hashcode=hashcode)
+        except File.DoesNotExist:
+            return Response({'detail': 'File not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        file_path = file_instance.file.path
+        file_name = os.path.basename(file_path)
+        response = FileResponse(open(file_path, 'rb'), content_type='application/octet-stream')
+        response['Content-Disposition'] = f'attachment; filename="{file_name}"'
+        return response
+
+
+class MP3FileDownload(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, hashcode):
+        try:
+            audio_instance = Audio.objects.get(hashcode=hashcode)
+        except Audio.DoesNotExist:
+            return Response({'detail': 'File not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        file_path = audio_instance.audio.path
+        file_name = os.path.basename(file_path)
+        response = FileResponse(open(file_path, 'rb'), content_type='audio/mpeg')
+        response['Content-Disposition'] = f'attachment; filename="{file_name}"'
+        return response

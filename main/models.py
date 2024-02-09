@@ -93,11 +93,13 @@ class Review(models.Model):
 class File(models.Model):
     chapter_id = models.OneToOneField(Chapter, on_delete=models.CASCADE)
     file = models.FileField(upload_to='file')
+    hashcode = models.CharField(max_length=64)
 
 
 class Audio(models.Model):
     chapter_id = models.OneToOneField(Chapter, on_delete=models.CASCADE)
     audio = models.FileField(upload_to='audio')
+    hashcode = models.CharField(max_length=64)
 
 
 class Subscription(models.Model):
