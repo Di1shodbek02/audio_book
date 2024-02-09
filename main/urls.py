@@ -4,7 +4,7 @@ from main.views import CategoryRead, GenreReadAPIView, AuthorGetAll, GetBookAPIV
     ChapterDetailAPIView, GetChapters, BooksByNewRelease, BooksByTrendingNow, BooksBelongsToCategory, BookView, \
     BookmarkView, CategorySearch, BookSearch, BooksByAuthorView, BooksByGenreView, \
     ReviewCreateView, RatingToReviewView, RatingForBook, ReviewOfBookView, NotificationAPIView, NotificationDetailView, \
-    AddBookLibrary, RecommendedBooksView, RecommendedCategories, NextBackChapterDetail
+    AddBookLibrary, RecommendedBooksView, RecommendedCategories, NextBackChapterDetail, PDFFileDownload, MP3FileDownload
 
 urlpatterns = [
     path('categories/', CategoryRead.as_view()),
@@ -32,5 +32,7 @@ urlpatterns = [
     path('recommended-book/', RecommendedBooksView.as_view(), name='recommended-books'),
     path('recommended-categories/', RecommendedCategories.as_view(), name='recommended-categories'),
     path('next-chapter-detail/<int:book_id>/<int:chapter_number>/<int:purpose>/', NextBackChapterDetail.as_view(), name='next-back-chapter-detail'),
+    path('download-pdf/<str:hashcode>/', PDFFileDownload.as_view(), name='pdf_download'),
+    path('download-mp3/<str:hashcode>/', MP3FileDownload.as_view(), name='mp3_download')
 
 ]

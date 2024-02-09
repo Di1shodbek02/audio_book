@@ -1,9 +1,11 @@
-from django.http import Http404
+import os
+
+from django.http import Http404, FileResponse
 from django.core.cache import cache
 from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import filters
+from rest_framework import filters, status
 from django.db import transaction
 from .models import Category, Genre, Author, Book, File, Audio, Chapter, Review, Notification, Library, UserPersonalize
 from .serializer import CategorySerializer, GenreSerializer, \
@@ -377,7 +379,7 @@ class RecommendedCategories(GenericAPIView):
 class NextBackChapterDetail(GenericAPIView):
     serializer_class = NextBackChapterSerializer
     permission_classes = (IsAuthenticated,)
-
+    
     def get(self, request, book_id, chapter_number, purpose):
         if not purpose:
             purpose = -1
@@ -393,4 +395,33 @@ class NextBackChapterDetail(GenericAPIView):
             return Response({'detail': "Not Found Such Chapter"})
 
 
+class PDFFileDownload(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
 
+    def get(self, request, hashcode):
+        try:
+            file_instance = File.objects.get(hashcode=hashcode)
+        except File.DoesNotExist:
+            return Response({'detail': 'File not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        file_path = file_instance.file.path
+        file_name = os.path.basename(file_path)
+        response = FileResponse(open(file_path, 'rb'), content_type='application/octet-stream')
+        response['Content-Disposition'] = f'attachment; filename="{file_name}"'
+        return response
+
+
+class MP3FileDownload(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, hashcode):
+        try:
+            audio_instance = Audio.objects.get(hashcode=hashcode)
+        except Audio.DoesNotExist:
+            return Response({'detail': 'File not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        file_path = audio_instance.audio.path
+        file_name = os.path.basename(file_path)
+        response = FileResponse(open(file_path, 'rb'), content_type='audio/mpeg')
+        response['Content-Disposition'] = f'attachment; filename="{file_name}"'
+        return response

@@ -44,14 +44,14 @@ class AudioSerializerForChapter(ModelSerializer):
 
     class Meta:
         model = Audio
-        fields = ('audio',)
+        fields = ('audio', 'hashcode')
 
 
 class FileSerializerForChapter(ModelSerializer):
 
     class Meta:
         model = File
-        fields = ('file',)
+        fields = ('file', 'hashcode')
 
 
 class ReviewSerializer(ModelSerializer):
