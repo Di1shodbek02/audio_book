@@ -252,3 +252,4 @@ def callback_google(request):
     code = request.GET.get("code")
     res = requests.post("https://eff4-178-218-201-17.ngrok-free.app/accounts/google", data={"code": code}, timeout=30)
     return Response(res.json())
+

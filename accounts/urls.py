@@ -25,3 +25,4 @@ urlpatterns = [
     path('facebook-login', RedirectToFacebookApiView.as_view(), name='facebook-login'),
     path('facebook/callback', callback_facebook, name='facebook_callback')
 ]
+
