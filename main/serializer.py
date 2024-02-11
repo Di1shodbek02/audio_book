@@ -2,7 +2,8 @@ from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
 
 from accounts.serializers import UserInfo
-from main.models import Category, Genre, Author, Book, Audio, File, Chapter, Review, Notification, Library
+from main.models import Category, Genre, Author, Book, Audio, File, Chapter, Review, Notification, Library, ViewCount, \
+    Rating
 
 
 class CategorySerializer(ModelSerializer):
@@ -69,6 +70,25 @@ class ReviewGetSerializer(ModelSerializer):
         fields = '__all__'
 
 
+class BookDetailsSerializer(ModelSerializer):
+    author_id = AuthorSerializer()
+    genre = GenreSerializer(many=True)
+    category_id = CategorySerializer()
+    view_count = serializers.IntegerField()
+    rating = serializers.FloatField()
+
+    class Meta:
+        model = Book
+        fields = '__all__'
+
+
+class AddViewCountSerializer(ModelSerializer):
+
+    class Meta:
+        model = ViewCount
+        exclude = ('id',)
+
+
 class BookSerializerAll(ModelSerializer):
     author_id = AuthorSerializer()
     genre = GenreSerializer(many=True)
@@ -118,8 +138,6 @@ class ChapterSerializerForBookmark(ModelSerializer):
         fields = '__all__'
 
 
-
-
 class BookMarkSerializer(serializers.Serializer): # noqa
     book_id = serializers.IntegerField()
     chapter_id = serializers.IntegerField()
@@ -130,9 +148,11 @@ class RatingToReview(serializers.Serializer): # noqa
     review_id = serializers.IntegerField()
 
 
-class RatingForBookSerializer(serializers.Serializer): # noqa
-    mark = serializers.IntegerField()
-    book_id = serializers.IntegerField()
+class RatingForBookSerializer(ModelSerializer): # noqa
+
+    class Meta:
+        model = Rating
+        exclude = ('id', 'user_id')
 
 
 class NotificationSerializer(ModelSerializer):
