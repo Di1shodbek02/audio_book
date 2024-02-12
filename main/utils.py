@@ -1,6 +1,8 @@
-from main.models import Book, File
 from celery import shared_task
 from django.db import transaction
+
+from main.models import Book, ViewCount
+from main.models import File
 
 
 def get_file_and_audio_by_book_id(book: Book):
@@ -8,12 +10,21 @@ def get_file_and_audio_by_book_id(book: Book):
     audio = File.objects.get(book_id=book.id)
 
 
-from main.models import Book, Notification
+from main.models import Notification
 
 
 @shared_task
 def read_count(book_id):
     return 'Done'
+
+
+@shared_task
+def view_count(book, user):
+    if not ViewCount.objects.filter(book_id=book, user_id=user).exists():
+        view_count_data = ViewCount.objects.create(book_id=book, user_id=user)
+        view_count_data.save()
+
+    return 'Task Completed'
 
 
 @shared_task

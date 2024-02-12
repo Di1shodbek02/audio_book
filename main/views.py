@@ -2,20 +2,20 @@ import os
 
 from django.core.cache import cache
 from django.db import transaction
-from django.http import FileResponse
-from django.http import Http404
-from rest_framework import filters, status
-from rest_framework.generics import GenericAPIView, ListAPIView, get_object_or_404
+from django.db.models import Count, Avg
+from django.http import Http404, FileResponse
+from rest_framework import status, filters
+from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .models import Category, Genre, Author, Book, File, Audio, Chapter, Review, Notification, Library, UserPersonalize
+from .models import Category, Genre, Author, Book, File, Audio, Chapter, Review, Notification, Library, \
+    ViewCount, Rating, UserPersonalize
 from .serializer import CategorySerializer, GenreSerializer, \
-    AuthorSerializer, BookSerializerAll, ChapterSerializer, BookMarkSerializer, ReviewSerializer, RatingToReview, \
-    RatingForBookSerializer, ReviewGetSerializer, NotificationSerializer, \
-    LibrarySerializer, AddLibrarySerializer, ChapterSerializerForBookmark, \
+    AuthorSerializer, BookSerializerAll, ChapterSerializer, LibrarySerializer, ChapterSerializerForBookmark, \
+    BookDetailsSerializer, BookMarkSerializer, ReviewSerializer, RatingToReview, ReviewGetSerializer, \
+    UserPersonalizeSerializer, NotificationSerializer, AddLibrarySerializer, RatingForBookSerializer, \
     NextBackChapterSerializer
-from .serializer import UserPersonalizeSerializer
 from .utils import notification_status
 
 
@@ -64,7 +64,7 @@ class GetBookAPIView(GenericAPIView):
 
 
 class BookView(GenericAPIView):
-    serializer_class = BookSerializerAll
+    serializer_class = BookDetailsSerializer
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, book_id):
@@ -79,6 +79,16 @@ class BookView(GenericAPIView):
                     serialized.data['book_id'] = Book.objects.filter(id=book__id).values()
 
                     return Response({'success': True, 'book': serialized.data})
+        except AttributeError:
+            book_instance = Book.objects.get(id=book_id)
+            if not ViewCount.objects.filter(book_id=book_instance, user_id=request.user).exists():
+                view_count_data = ViewCount.objects.create(book_id=book_instance, user_id=request.user)
+                view_count_data.save()
+            new_view_count = ViewCount.objects.filter(book_id=book_instance).count()
+            average_rating = Rating.objects.filter(book_id=book_id).aggregate(average_rating=Avg('mark'))[
+                'average_rating']
+            book_instance.rating = round(average_rating, 1)
+            book_instance.view_count = new_view_count
 
         except Exception as e:
             with transaction.atomic():
@@ -92,6 +102,9 @@ class BookView(GenericAPIView):
             book_data = self.serializer_class(book__data)
 
         return Response({'success': book_data.data})
+
+        serializer = self.serializer_class(book_instance)
+        return Response({'book_detail': serializer.data})
 
 
 class GetChapters(GenericAPIView):
@@ -136,7 +149,10 @@ class BooksByTrendingNow(GenericAPIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        filtered_books = Book.objects.filter().order_by('-read_count')[:5]
+        most_view_books = ViewCount.objects.values('book_id').annotate(view_count=Count('book_id')).order_by(
+            '-view_count')[:10]
+        book_ids = [item['book_id'] for item in most_view_books]
+        filtered_books = Book.objects.filter(id__in=book_ids)
         serialized_books = self.serializer_class(filtered_books, many=True)
 
         return Response({'trending_now_books': serialized_books.data})
@@ -215,6 +231,7 @@ class BooksByGenreView(GenericAPIView):
 
         return Response({'book_by_genre': books.data})
 
+
 class ReviewCreateView(GenericAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = ReviewSerializer
@@ -267,27 +284,16 @@ class RatingForBook(GenericAPIView):
     serializer_class = RatingForBookSerializer
 
     def post(self, request):
-        book_id = request.data.get('book_id')
-        mark = request.data.get('mark')
+        print(request.user.id)
+        if not Rating.objects.filter(book_id=request.data.get('book_id'), user_id=request.user).exists():
+            rating = self.serializer_class(data=request.data)
+            rating.is_valid(raise_exception=True)
+            rating.save()
+        rating = Rating.objects.get(user_id=request.user, book_id=request.data.get('book_id'))
+        rating.mark = request.data.get('mark')
+        rating.save()
 
-        if 0 < mark < 6:
-            try:
-                book = Book.objects.select_for_update().get(pk=book_id)
-
-                current_rating = book.rating
-                current_mark_count = book.count_rating
-
-                if current_mark_count != 0:
-                    book.rating = ((current_rating * current_mark_count) + mark) / (current_mark_count + 1)
-                else:
-                    book.rating = mark
-                book.count_rating = current_mark_count + 1
-                book.save()
-
-            except Book.DoesNotExist:
-                raise Http404('Book matching query does not exist')
-
-        raise Http404('Mark is incorrect')
+        return Response({'Success': True})
 
 
 class ReviewOfBookView(GenericAPIView):
@@ -390,7 +396,7 @@ class RecommendedCategories(GenericAPIView):
 class NextBackChapterDetail(GenericAPIView):
     serializer_class = NextBackChapterSerializer
     permission_classes = (IsAuthenticated,)
-    
+
     def get(self, request, book_id, chapter_number, purpose):
         if not purpose:
             purpose = -1
@@ -402,8 +408,9 @@ class NextBackChapterDetail(GenericAPIView):
             chapter_serializer.data['audio'] = Audio.objects.filter(chapter_id=chapter.id).values()
 
             return Response({'chapter': chapter_serializer.data})
-        except Exception as e:
+        except Exception:
             return Response({'detail': "Not Found Such Chapter"})
+
 
 class PDFFileDownload(GenericAPIView):
     permission_classes = (IsAuthenticated,)
