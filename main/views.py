@@ -2,15 +2,26 @@ import os
 
 from django.core.cache import cache
 from django.db import transaction
+<<<<<<< Updated upstream
 from django.db.models import Count, Avg
 from django.http import Http404, FileResponse
+=======
+from django.db.models import Avg
+from django.http import FileResponse
+from django.http import Http404
+>>>>>>> Stashed changes
 from rest_framework import filters, status
 from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+<<<<<<< Updated upstream
 from .models import Category, Genre, Author, Book, File, Audio, Chapter, Review, Notification, Library, \
     ViewCount, Rating, UserPersonalize
+=======
+from .models import Category, Genre, Author, Book, File, Audio, Chapter, Review, Notification, Library, UserPersonalize, \
+    ViewCount, Rating
+>>>>>>> Stashed changes
 from .serializer import CategorySerializer, GenreSerializer, \
     AuthorSerializer, BookSerializerAll, ChapterSerializer, BookMarkSerializer, ReviewSerializer, RatingToReview, \
     RatingForBookSerializer, ReviewGetSerializer, NotificationSerializer, \
@@ -68,6 +79,7 @@ class BookView(GenericAPIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, book_id):
+        global book_instance
         try:
             bookmark_cache = cache.get(request.user.id)
             if request.user.id == bookmark_cache.get('user_id'):
@@ -216,6 +228,7 @@ class BooksByGenreView(GenericAPIView):
         books = self.serializer_class(book_data, many=True)
 
         return Response({'book_by_genre': books.data})
+
 
 class ReviewCreateView(GenericAPIView):
     permission_classes = (IsAuthenticated,)
@@ -396,6 +409,7 @@ class NextBackChapterDetail(GenericAPIView):
         except Exception:
             return Response({'detail': "Not Found Such Chapter"})
 
+
 class PDFFileDownload(GenericAPIView):
     permission_classes = (IsAuthenticated,)
 
@@ -426,4 +440,3 @@ class MP3FileDownload(GenericAPIView):
         response = FileResponse(open(file_path, 'rb'), content_type='audio/mpeg')
         response['Content-Disposition'] = f'attachment; filename="{file_name}"'
         return response
-
