@@ -8,11 +8,13 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get('SECRET_KEY')
+SECRET_KEY = os.environ.get('SECRET')
 
-DEBUG = True
+# DEBUG = os.getenv('DEBUG', '0').lower() in ['true', 't', '1']
 
-ALLOWED_HOSTS = ['*']
+# ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(' ')
+
+
 AUTH_USER_MODEL = 'accounts.User'
 
 INSTALLED_APPS = [
@@ -44,18 +46,18 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.facebook',
 ]
-MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # Google
-    'allauth.account.middleware.AccountMiddleware',  # noqa
-]
+# MIDDLEWARE = [
+#     'django.middleware.security.SecurityMiddleware',
+#     'whitenoise.middleware.WhiteNoiseMiddleware',
+#     'django.contrib.sessions.middleware.SessionMiddleware',
+#     'django.middleware.common.CommonMiddleware',
+#     'django.middleware.csrf.CsrfViewMiddleware',
+#     'django.contrib.auth.middleware.AuthenticationMiddleware',
+#     'django.contrib.messages.middleware.MessageMiddleware',
+#     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+#     # Google
+#     'allauth.account.middleware.AccountMiddleware',  # noqa
+# ]
 ROOT_URLCONF = 'AudioBook.urls'
 
 TEMPLATES = [
@@ -77,16 +79,25 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'AudioBook.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT')
-    }
-}
+# CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS').split()
+#
+# SECURE_SSL_REDIRECT = \
+#     os.getenv('SECURE_SSL_REDIRECT', '0').lower() in ['true', 't', '1']
+# if SECURE_SSL_REDIRECT:
+#     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': os.getenv('DB_NAME'),
+#         'USER': os.getenv('DB_USER'),
+#         'PASSWORD': os.getenv('DB_PASSWORD'),
+#         'HOST': os.getenv('DB_HOST'),
+#         'PORT': os.getenv('DB_PORT'),
+#         'OPTIONS': {'sslmode': 'require'},
+#     }
+# }
 
 REST_FRAMEWORK = {
     'DEFAULT_CACHE_BACKEND': 'django.core.cache.backends.django_redis.RedisCache',
@@ -186,7 +197,7 @@ JAZZMIN_SETTINGS = {
     "site_icon": "images/favicon.png",
     "site_logo": None,
     "welcome_sign": "Welcome to the AudioBook",
-    "copyright": "Tukhtasinov",
+    "copyright": "Ahmatov",
     "user_avatar": None,
 
     "topmenu_links": [
@@ -258,8 +269,15 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
+# DEFAULT_FILE_STORAGE = 'Microservice1.azure_storage.AzureMediaStorage'
+# STATICFILES_STORAGE = 'Microservice1.azure_storage.AzureStaticStorage'
+#
+# AZURE_ACCOUNT_NAME = os.getenv('AZURE_ACCOUNT_NAME')
+# AZURE_ACCOUNT_KEY = os.getenv('AZURE_ACCOUNT_KEY')
+# AZURE_CUSTOM_DOMAIN = f'{AZURE_ACCOUNT_NAME}.blob.core.windows.net'
+
 STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 MEDIA_URL = 'media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
