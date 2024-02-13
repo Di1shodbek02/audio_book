@@ -1,8 +1,9 @@
 from django.contrib import admin
-from main.models import Genre, Book, Category, File, Author, Audio, Library, Subscription, Review, Chapter, Notification, UserPersonalize
+from main.models import Genre, Book, Category, File, Author, Audio, Library, Subscription, Review, Chapter, Notification, \
+    UserPersonalize, ViewCount, Rating
 
 
-admin.site.register((Genre, Book, Category, Author, Library, Subscription, Review, Chapter, Notification, UserPersonalize))
+admin.site.register((Genre,ViewCount, Rating, Book, Category, Author, Library, Subscription, Review, Chapter, Notification, UserPersonalize))
 
 
 @admin.register(Audio)
