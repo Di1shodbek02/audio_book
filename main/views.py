@@ -2,26 +2,17 @@ import os
 
 from django.core.cache import cache
 from django.db import transaction
-<<<<<<< Updated upstream
-from django.db.models import Count, Avg
-from django.http import Http404, FileResponse
-=======
 from django.db.models import Avg
+from django.db.models import Count
 from django.http import FileResponse
 from django.http import Http404
->>>>>>> Stashed changes
 from rest_framework import filters, status
 from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-<<<<<<< Updated upstream
-from .models import Category, Genre, Author, Book, File, Audio, Chapter, Review, Notification, Library, \
-    ViewCount, Rating, UserPersonalize
-=======
 from .models import Category, Genre, Author, Book, File, Audio, Chapter, Review, Notification, Library, UserPersonalize, \
     ViewCount, Rating
->>>>>>> Stashed changes
 from .serializer import CategorySerializer, GenreSerializer, \
     AuthorSerializer, BookSerializerAll, ChapterSerializer, BookMarkSerializer, ReviewSerializer, RatingToReview, \
     RatingForBookSerializer, ReviewGetSerializer, NotificationSerializer, \
